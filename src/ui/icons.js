@@ -1,0 +1,26 @@
+// Single place icons enter the app. Icons only ever come from react-icons —
+// never emoji — so the UI stays consistent and legible everywhere.
+export {
+  FiUpload,
+  FiFile,
+  FiFileText,
+  FiImage,
+  FiLayers,
+  FiEdit3,
+  FiEyeOff,
+  FiType,
+  FiLock,
+  FiSearch,
+  FiZoomIn,
+  FiZoomOut,
+  FiMaximize,
+  FiDownload,
+  FiX,
+  FiSun,
+  FiMoon,
+  FiChevronLeft,
+  FiChevronRight,
+  FiTrash2,
+  FiRotateCw,
+} from 'react-icons/fi';
+export { LuShieldCheck } from 'react-icons/lu';

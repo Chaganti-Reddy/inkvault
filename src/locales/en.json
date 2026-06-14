@@ -1,0 +1,53 @@
+{
+  "brand": {
+    "name": "InkVault",
+    "tagline": "private PDF studio"
+  },
+  "nav": {
+    "open": "Open PDF",
+    "source": "Source",
+    "privacyNote": "Files never leave your device"
+  },
+  "home": {
+    "headline": "Edit PDFs without giving them away",
+    "sub": "Merge, sign, redact, OCR and more — 100% in your browser. No upload, no signup, no limits.",
+    "drop": "Drop a PDF here",
+    "or": "or",
+    "choose": "Choose a file",
+    "chooseImages": "Images to PDF",
+    "recent": "Recent",
+    "privacy": "Everything runs on your device. Your files are never uploaded.",
+    "errorType": "That doesn't look like a PDF. Try another file.",
+    "features": {
+      "organize": "Organize pages",
+      "organizeSub": "Merge, split, reorder, rotate, delete.",
+      "annotate": "Annotate & sign",
+      "annotateSub": "Highlight, draw, add text, sign.",
+      "redact": "Redact",
+      "redactSub": "Truly remove sensitive text — not just cover it.",
+      "ocr": "OCR",
+      "ocrSub": "Make scanned PDFs searchable, 100+ languages.",
+      "forms": "Fill forms",
+      "formsSub": "Complete and flatten PDF forms.",
+      "secure": "Compress & protect",
+      "secureSub": "Shrink files, add a password."
+    }
+  },
+  "viewer": {
+    "page": "Page {{n}} of {{total}}",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit width",
+    "thumbnails": "Pages",
+    "loading": "Opening…",
+    "rendering": "Rendering pages…"
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "download": "Download",
+    "back": "Back",
+    "apply": "Apply"
+  }
+}
