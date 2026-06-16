@@ -13,12 +13,14 @@ export async function loadDocument(data) {
 }
 
 // Render one page onto a canvas at the given CSS width, accounting for devicePixelRatio
-// so text stays crisp on high-DPI screens. Returns the rendered { width, height } in CSS px.
-export async function renderPage(doc, pageNumber, cssWidth, canvas) {
+// so text stays crisp on high-DPI screens. `rotation` (0/90/180/270) is applied on
+// top of the page's intrinsic rotation. Returns the rendered { width, height } in CSS px.
+export async function renderPage(doc, pageNumber, cssWidth, canvas, rotation = 0) {
   const page = await doc.getPage(pageNumber);
-  const unscaled = page.getViewport({ scale: 1 });
+  const total = (((page.rotate || 0) + rotation) % 360 + 360) % 360;
+  const unscaled = page.getViewport({ scale: 1, rotation: total });
   const scale = cssWidth / unscaled.width;
-  const viewport = page.getViewport({ scale });
+  const viewport = page.getViewport({ scale, rotation: total });
   const dpr = window.devicePixelRatio || 1;
 
   canvas.width = Math.floor(viewport.width * dpr);

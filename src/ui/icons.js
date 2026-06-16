@@ -22,5 +22,9 @@ export {
   FiChevronRight,
   FiTrash2,
   FiRotateCw,
+  FiCopy,
+  FiCheckSquare,
+  FiGrid,
+  FiEye,
 } from 'react-icons/fi';
 export { LuShieldCheck } from 'react-icons/lu';

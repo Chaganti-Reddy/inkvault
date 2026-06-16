@@ -40,7 +40,23 @@
     "fit": "Fit width",
     "thumbnails": "Pages",
     "loading": "Opening…",
-    "rendering": "Rendering pages…"
+    "rendering": "Rendering pages…",
+    "saving": "Saving…"
+  },
+  "tool": {
+    "view": "View",
+    "organize": "Pages"
+  },
+  "organize": {
+    "selected": "{{n}} selected",
+    "allPages": "{{n}} pages",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "rotate": "Rotate",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "merge": "Add PDF",
+    "extract": "Export selected"
   },
   "common": {
     "close": "Close",

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { renderPage } from '../lib/pdfview.js';
 
-// One page. Renders lazily the first time it scrolls near the viewport, and
-// re-renders when the target width changes (zoom). Keeps big PDFs responsive.
-function Page({ doc, pageNumber, width, onVisible }) {
+// One page rendered from its source document. Renders lazily the first time it
+// scrolls near the viewport, and re-renders when width or rotation changes.
+function Page({ page, source, displayNumber, width, onVisible }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const [seen, setSeen] = useState(false);
@@ -11,44 +11,35 @@ function Page({ doc, pageNumber, width, onVisible }) {
   useEffect(() => {
     const el = wrapRef.current;
     const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            setSeen(true);
-            onVisible?.(pageNumber);
-          }
-        }
-      },
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { setSeen(true); onVisible?.(displayNumber); } }),
       { root: null, rootMargin: '600px 0px' },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [pageNumber, onVisible]);
+  }, [displayNumber, onVisible]);
 
   useEffect(() => {
-    if (!seen || !width) return;
+    if (!seen || !width || !source) return;
     let cancelled = false;
     (async () => {
       try {
-        if (!cancelled) await renderPage(doc, pageNumber, width, canvasRef.current);
-      } catch { /* page render can be cancelled on fast scroll/zoom; ignore */ }
+        if (!cancelled) await renderPage(source.doc, page.index + 1, width, canvasRef.current, page.rotation);
+      } catch { /* render can be cancelled on fast scroll/zoom; ignore */ }
     })();
     return () => { cancelled = true; };
-  }, [seen, width, doc, pageNumber]);
+  }, [seen, width, source, page.index, page.rotation]);
 
   return (
-    <div className="pdf-page" ref={wrapRef} data-page={pageNumber}>
+    <div className="pdf-page" ref={wrapRef} data-page={displayNumber}>
       <canvas ref={canvasRef} className="pdf-canvas" />
     </div>
   );
 }
 
-export default function PdfViewer({ doc, numPages, zoom = 1, onPageInView }) {
+export default function PdfViewer({ pages, sources, zoom = 1, onPageInView }) {
   const scrollRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(0);
 
-  // Base width = the column width; zoom scales from there. Clamped so pages don't
-  // touch the edges.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -63,8 +54,15 @@ export default function PdfViewer({ doc, numPages, zoom = 1, onPageInView }) {
 
   return (
     <div className="pdf-scroll" ref={scrollRef}>
-      {Array.from({ length: numPages }, (_, i) => (
-        <Page key={i + 1} doc={doc} pageNumber={i + 1} width={width} onVisible={onPageInView} />
+      {pages.map((pg, i) => (
+        <Page
+          key={pg.id}
+          page={pg}
+          source={sources[pg.srcKey]}
+          displayNumber={i + 1}
+          width={width}
+          onVisible={onPageInView}
+        />
       ))}
     </div>
   );

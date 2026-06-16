@@ -6,27 +6,38 @@ import i18n from '../i18n.js';
 const Ctx = createContext(null);
 export const usePdf = () => useContext(Ctx);
 
+let idSeq = 0;
+const nextId = () => `p${++idSeq}`;
+
+// The document is a *model*: an ordered list of page items, each pointing at a
+// source PDF (by key), a page index within it, and a rotation. Reorder / delete /
+// rotate just edit this array — cheap, no re-render of unaffected pages. Merge adds
+// a new source and appends its pages. Bytes are only rebuilt (via pdf-lib) on export.
 export function PdfProvider({ children }) {
   const navigate = useNavigate();
-  const [bytes, setBytes] = useState(null); // canonical Uint8Array (never detached)
-  const [doc, setDoc] = useState(null); // pdf.js document for rendering
+  const [sources, setSources] = useState({}); // key -> { bytes, doc, name }
+  const [pages, setPages] = useState([]); // [{ id, srcKey, index, rotation }]
   const [fileName, setFileName] = useState('');
-  const [numPages, setNumPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [dirty, setDirty] = useState(false);
 
-  // Load from raw bytes. Keeps `bytes` intact and gives pdf.js its own copy, since
-  // pdf.js detaches the buffer it receives.
+  const reset = useCallback(() => {
+    setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false);
+  }, []);
+
   const openBytes = useCallback(async (data, name) => {
     setError('');
     setLoading(true);
     try {
       const canonical = data instanceof Uint8Array ? data : new Uint8Array(data);
-      const d = await loadDocument(canonical.slice());
-      setBytes(canonical);
-      setDoc(d);
+      const doc = await loadDocument(canonical.slice());
+      const key = 's0';
+      const items = Array.from({ length: doc.numPages }, (_, i) => ({ id: nextId(), srcKey: key, index: i, rotation: 0 }));
+      setSources({ [key]: { bytes: canonical, doc, name: name || 'document.pdf' } });
+      setPages(items);
       setFileName(name || 'document.pdf');
-      setNumPages(d.numPages);
+      setDirty(false);
       navigate('/edit');
     } catch (e) {
       setError(e?.message || String(e));
@@ -41,11 +52,60 @@ export function PdfProvider({ children }) {
     await openBytes(data, file.name);
   }, [openBytes]);
 
-  const close = useCallback(() => {
-    setBytes(null); setDoc(null); setFileName(''); setNumPages(0); setError('');
-    navigate('/');
-  }, [navigate]);
+  // Merge another PDF's pages onto the end of the model.
+  const mergeFile = useCallback(async (file) => {
+    if (!isPdf(file)) { setError(i18n.t('home.errorType')); return; }
+    const data = await readFileBytes(file);
+    const canonical = new Uint8Array(data);
+    const doc = await loadDocument(canonical.slice());
+    const key = `s${Date.now()}`;
+    const items = Array.from({ length: doc.numPages }, (_, i) => ({ id: nextId(), srcKey: key, index: i, rotation: 0 }));
+    setSources((s) => ({ ...s, [key]: { bytes: canonical, doc, name: file.name } }));
+    setPages((p) => [...p, ...items]);
+    setDirty(true);
+  }, []);
 
-  const value = { bytes, doc, fileName, numPages, loading, error, setError, openFile, openBytes, close };
+  const rotatePages = useCallback((ids, delta = 90) => {
+    const set = new Set(ids);
+    setPages((p) => p.map((pg) => (set.has(pg.id) ? { ...pg, rotation: (pg.rotation + delta + 360) % 360 } : pg)));
+    setDirty(true);
+  }, []);
+
+  const deletePages = useCallback((ids) => {
+    const set = new Set(ids);
+    setPages((p) => (p.length - set.size < 1 ? p : p.filter((pg) => !set.has(pg.id))));
+    setDirty(true);
+  }, []);
+
+  const duplicatePages = useCallback((ids) => {
+    const set = new Set(ids);
+    setPages((p) => {
+      const out = [];
+      for (const pg of p) {
+        out.push(pg);
+        if (set.has(pg.id)) out.push({ ...pg, id: nextId() });
+      }
+      return out;
+    });
+    setDirty(true);
+  }, []);
+
+  // Reorder to an explicit new list of page ids.
+  const reorderPages = useCallback((orderedIds) => {
+    setPages((p) => {
+      const byId = new Map(p.map((pg) => [pg.id, pg]));
+      const next = orderedIds.map((id) => byId.get(id)).filter(Boolean);
+      return next.length === p.length ? next : p;
+    });
+    setDirty(true);
+  }, []);
+
+  const close = useCallback(() => { reset(); navigate('/'); }, [reset, navigate]);
+
+  const value = {
+    sources, pages, fileName, loading, error, dirty, setError, setDirty,
+    openFile, openBytes, mergeFile, rotatePages, deletePages, duplicatePages, reorderPages, close,
+    numPages: pages.length,
+  };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
