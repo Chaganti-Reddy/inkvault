@@ -45,7 +45,28 @@
   },
   "tool": {
     "view": "View",
-    "organize": "Pages"
+    "organize": "Pages",
+    "annotate": "Annotate"
+  },
+  "annotate": {
+    "select": "Select / move",
+    "text": "Add text",
+    "highlight": "Highlight",
+    "pen": "Draw",
+    "rect": "Rectangle",
+    "signature": "Signature",
+    "color": "Custom color",
+    "deleteSel": "Delete"
+  },
+  "sign": {
+    "title": "Add your signature",
+    "draw": "Draw",
+    "type": "Type",
+    "upload": "Upload",
+    "clear": "Clear",
+    "place": "Place signature",
+    "typePlaceholder": "Type your name",
+    "uploadHint": "Pick an image of your signature (PNG with transparent background works best)."
   },
   "organize": {
     "selected": "{{n}} selected",

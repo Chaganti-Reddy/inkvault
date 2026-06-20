@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
 import PdfViewer from '../components/PdfViewer.jsx';
 import OrganizePanel from '../components/OrganizePanel.jsx';
+import AnnotatePanel from '../components/AnnotatePanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes } from '../lib/pdfops.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
-  const { pages, sources, numPages, fileName, loading } = usePdf();
+  const { pages, sources, annotations, numPages, fileName, loading } = usePdf();
   const [tool, setTool] = useState('view');
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
@@ -21,7 +22,7 @@ export default function Editor() {
   const download = async () => {
     setSaving(true);
     try {
-      const bytes = await buildPdf(pages, sources);
+      const bytes = await buildPdf(pages, sources, annotations);
       downloadBytes(bytes, fileName || 'document.pdf');
     } finally {
       setSaving(false);
@@ -56,6 +57,7 @@ export default function Editor() {
 
         {tool === 'view' && <PdfViewer pages={pages} sources={sources} zoom={zoom} onPageInView={setPageInView} />}
         {tool === 'organize' && <OrganizePanel />}
+        {tool === 'annotate' && <AnnotatePanel />}
         {loading && <div className="editor-loading">{t('viewer.loading')}</div>}
       </main>
     </div>

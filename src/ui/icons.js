@@ -26,5 +26,9 @@ export {
   FiCheckSquare,
   FiGrid,
   FiEye,
+  FiMousePointer,
+  FiSquare,
+  FiPenTool,
+  FiEdit2,
 } from 'react-icons/fi';
 export { LuShieldCheck } from 'react-icons/lu';

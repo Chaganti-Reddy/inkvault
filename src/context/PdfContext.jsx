@@ -21,9 +21,10 @@ export function PdfProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
+  const [annotations, setAnnotations] = useState({}); // pageId -> [{ id, type, ... normalized coords }]
 
   const reset = useCallback(() => {
-    setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false);
+    setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false); setAnnotations({});
   }, []);
 
   const openBytes = useCallback(async (data, name) => {
@@ -100,11 +101,28 @@ export function PdfProvider({ children }) {
     setDirty(true);
   }, []);
 
+  // --- annotations (coords normalized 0..1 to the displayed page box) ---
+  const addAnnotation = useCallback((pageId, ann) => {
+    const withId = { id: nextId(), ...ann };
+    setAnnotations((a) => ({ ...a, [pageId]: [...(a[pageId] || []), withId] }));
+    setDirty(true);
+    return withId.id;
+  }, []);
+  const updateAnnotation = useCallback((pageId, id, patch) => {
+    setAnnotations((a) => ({ ...a, [pageId]: (a[pageId] || []).map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+    setDirty(true);
+  }, []);
+  const removeAnnotation = useCallback((pageId, id) => {
+    setAnnotations((a) => ({ ...a, [pageId]: (a[pageId] || []).filter((x) => x.id !== id) }));
+    setDirty(true);
+  }, []);
+
   const close = useCallback(() => { reset(); navigate('/'); }, [reset, navigate]);
 
   const value = {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
     openFile, openBytes, mergeFile, rotatePages, deletePages, duplicatePages, reorderPages, close,
+    annotations, addAnnotation, updateAnnotation, removeAnnotation,
     numPages: pages.length,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

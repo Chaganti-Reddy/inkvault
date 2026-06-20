@@ -155,6 +155,69 @@
 .thumb-btn:hover { background: var(--surface2); color: var(--text); }
 .thumb-btn.danger:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
 
+/* ---------- annotate ---------- */
+.annotate { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.anno-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.anno-tools { display: flex; gap: 3px; }
+.anno-tool {
+  width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted);
+  cursor: pointer; font-size: 17px;
+}
+.anno-tool:hover { background: var(--surface2); color: var(--text); }
+.anno-tool.on { background: var(--accent-weak); color: var(--accent); }
+.anno-sep { width: 1px; height: 24px; background: var(--border); }
+.anno-colors { display: flex; align-items: center; gap: 5px; }
+.swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; padding: 0; }
+.swatch.on { border-color: var(--accent); transform: scale(1.12); }
+.swatch-custom { width: 26px; height: 26px; border: none; background: none; padding: 0; cursor: pointer; }
+.anno-sizes { display: flex; gap: 3px; }
+.size-btn { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--muted); cursor: pointer; font-weight: 700; font-size: 12px; }
+.size-btn.on { border-color: var(--accent); color: var(--accent); }
+.anno-bar .spacer { flex: 1; }
+
+.anno-scroll { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px; background: var(--bg); }
+.anno-page-wrap { position: relative; }
+.anno-page { position: relative; background: #fff; box-shadow: var(--shadow); border-radius: 4px; }
+.anno-surface { position: absolute; inset: 0; touch-action: none; }
+.anno-surface.tool-text { cursor: text; }
+.anno-surface.tool-pen, .anno-surface.tool-highlight, .anno-surface.tool-rect { cursor: crosshair; }
+.anno-svg { position: absolute; inset: 0; pointer-events: none; }
+.anno-svg rect, .anno-svg polyline { pointer-events: visiblePainted; }
+.anno-svg .sel { outline: none; }
+.anno-svg rect.sel { stroke: var(--accent); stroke-dasharray: 4 3; stroke-width: 1.5; }
+.anno-text {
+  position: absolute; min-width: 12px; min-height: 1em; outline: none; line-height: 1.15;
+  white-space: pre-wrap; cursor: move; padding: 0 1px;
+}
+.anno-text.sel { box-shadow: 0 0 0 1.5px var(--accent); border-radius: 2px; }
+.anno-img { position: absolute; cursor: move; }
+.anno-img.sel { box-shadow: 0 0 0 2px var(--accent); }
+
+/* ---------- modal + signature ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(8, 10, 14, 0.55); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+}
+.modal {
+  position: relative; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; box-shadow: var(--shadow); padding: 22px; width: min(620px, 100%);
+}
+.modal h3 { margin: 0 0 14px; font-size: 18px; }
+.modal-close { position: absolute; top: 12px; right: 12px; }
+.sig-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.sig-tabs button { padding: 7px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--muted); cursor: pointer; font-weight: 600; font-size: 13px; }
+.sig-tabs button.on { border-color: var(--accent); color: var(--accent); background: var(--accent-weak); }
+.sig-body { display: flex; flex-direction: column; gap: 12px; }
+.sig-canvas { width: 100%; height: 200px; background: #fff; border: 1px dashed var(--border); border-radius: 10px; touch-action: none; cursor: crosshair; }
+.sig-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.sig-input { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 15px; }
+.sig-preview { min-height: 70px; display: flex; align-items: center; justify-content: center; font-family: "Segoe Script", "Brush Script MT", cursive; font-size: 42px; color: var(--text); background: var(--surface2); border-radius: 10px; }
+.sig-hint { color: var(--muted); font-size: 13px; }
+
 @media (max-width: 720px) {
   .features { grid-template-columns: 1fr; }
   .brand-tag { display: none; }
