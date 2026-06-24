@@ -46,7 +46,7 @@ export default function AnnotateLayer({
       return;
     }
     if (tool === 'pen') { setDraft({ type: 'draw', points: [p], color, strokeW }); return; }
-    if (tool === 'highlight' || tool === 'rect') { setDraft({ type: tool, x0: p.x, y0: p.y, x: p.x, y: p.y }); return; }
+    if (tool === 'highlight' || tool === 'rect' || tool === 'redact') { setDraft({ type: tool, x0: p.x, y0: p.y, x: p.x, y: p.y }); return; }
   };
 
   const onSurfaceMove = (e) => {
@@ -65,6 +65,7 @@ export default function AnnotateLayer({
       const w = Math.abs(draft.x - draft.x0), h = Math.abs(draft.y - draft.y0);
       if (w > 0.005 && h > 0.005) {
         if (draft.type === 'highlight') onAdd({ type: 'highlight', x, y, w, h, color: '#ffd54a' });
+        else if (draft.type === 'redact') onAdd({ type: 'redact', x, y, w, h });
         else onAdd({ type: 'rect', x, y, w, h, color, strokeW });
       }
     }
@@ -115,6 +116,12 @@ export default function AnnotateLayer({
               className={selectedId === a.id ? 'sel' : ''}
               onPointerDown={(e) => startMove(e, a)} />
           ))}
+          {items.filter((a) => a.type === 'redact').map((a) => (
+            <rect key={a.id} x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)}
+              fill="#000" fillOpacity="1"
+              className={selectedId === a.id ? 'sel' : ''}
+              onPointerDown={(e) => startMove(e, a)} />
+          ))}
           {items.filter((a) => a.type === 'draw').map((a) => (
             <polyline key={a.id} points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')}
               fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" strokeLinejoin="round" />
@@ -123,10 +130,11 @@ export default function AnnotateLayer({
             <polyline points={draft.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')}
               fill="none" stroke={color} strokeWidth={strokePx(strokeW)} strokeLinecap="round" />
           )}
-          {(draft?.type === 'highlight' || draft?.type === 'rect') && (
+          {(draft?.type === 'highlight' || draft?.type === 'rect' || draft?.type === 'redact') && (
             <rect x={px(Math.min(draft.x0, draft.x))} y={py(Math.min(draft.y0, draft.y))}
               width={px(Math.abs(draft.x - draft.x0))} height={py(Math.abs(draft.y - draft.y0))}
-              fill={draft.type === 'highlight' ? '#ffd54a' : 'none'} fillOpacity="0.4"
+              fill={draft.type === 'highlight' ? '#ffd54a' : draft.type === 'redact' ? '#000' : 'none'}
+              fillOpacity={draft.type === 'rect' ? 0 : draft.type === 'redact' ? 1 : 0.4}
               stroke={draft.type === 'rect' ? color : 'none'} strokeWidth={strokePx(strokeW)} />
           )}
         </svg>

@@ -46,7 +46,12 @@
   "tool": {
     "view": "View",
     "organize": "Pages",
-    "annotate": "Annotate"
+    "annotate": "Annotate",
+    "redact": "Redact"
+  },
+  "redact": {
+    "box": "Draw redaction box",
+    "note": "Redacted pages are flattened on export — hidden content is permanently removed. ({{count}} marked)"
   },
   "annotate": {
     "select": "Select / move",

@@ -5,6 +5,7 @@ import { usePdf } from '../context/PdfContext.jsx';
 import PdfViewer from '../components/PdfViewer.jsx';
 import OrganizePanel from '../components/OrganizePanel.jsx';
 import AnnotatePanel from '../components/AnnotatePanel.jsx';
+import RedactPanel from '../components/RedactPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes } from '../lib/pdfops.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload } from '../ui/icons.js';
@@ -58,6 +59,7 @@ export default function Editor() {
         {tool === 'view' && <PdfViewer pages={pages} sources={sources} zoom={zoom} onPageInView={setPageInView} />}
         {tool === 'organize' && <OrganizePanel />}
         {tool === 'annotate' && <AnnotatePanel />}
+        {tool === 'redact' && <RedactPanel />}
         {loading && <div className="editor-loading">{t('viewer.loading')}</div>}
       </main>
     </div>

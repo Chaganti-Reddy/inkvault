@@ -34,6 +34,25 @@ export async function renderPage(doc, pageNumber, cssWidth, canvas, rotation = 0
   return { width: viewport.width, height: viewport.height };
 }
 
+// Render a page to an offscreen canvas at the given DPI, applying rotation so the
+// raster is already in displayed orientation. Returns the canvas plus the page's
+// displayed size in PDF points. Used to flatten redacted pages.
+export async function rasterizePage(doc, pageNumber, dpi = 150, rotation = 0) {
+  const page = await doc.getPage(pageNumber);
+  const total = (((page.rotate || 0) + rotation) % 360 + 360) % 360;
+  const base = page.getViewport({ scale: 1, rotation: total });
+  const scale = dpi / 72;
+  const viewport = page.getViewport({ scale, rotation: total });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.floor(viewport.width);
+  canvas.height = Math.floor(viewport.height);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  return { canvas, pointW: base.width, pointH: base.height };
+}
+
 export function readFileBytes(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

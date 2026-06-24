@@ -1,6 +1,9 @@
 // Rebuilds real PDF bytes from the page-model using pdf-lib. Everything runs in
 // the browser; no bytes are ever sent anywhere.
 import { PDFDocument, degrees, rgb } from 'pdf-lib';
+import { rasterizePage } from './pdfview.js';
+
+const REDACT_DPI = 150;
 
 function sourceLoader(sources) {
   const cache = new Map();
@@ -97,13 +100,31 @@ async function buildFrom(items, sources, annotations = {}) {
   const out = await PDFDocument.create();
   const load = sourceLoader(sources);
   for (const item of items) {
+    const anns = annotations[item.id] || [];
+    const redacts = anns.filter((a) => a.type === 'redact');
+    const others = anns.filter((a) => a.type !== 'redact');
+
+    if (redacts.length) {
+      // True redaction: rasterize the page (already rotated), paint the boxes over
+      // the pixels so the original text/content is permanently gone, then embed the
+      // flattened image as the page. No original content stream survives underneath.
+      const { canvas, pointW, pointH } = await rasterizePage(sources[item.srcKey].doc, item.index + 1, REDACT_DPI, item.rotation || 0);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#000';
+      for (const r of redacts) ctx.fillRect(r.x * canvas.width, r.y * canvas.height, r.w * canvas.width, r.h * canvas.height);
+      const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', 0.92)));
+      const page = out.addPage([pointW, pointH]);
+      page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
+      if (others.length) await drawAnnotations(out, page, others, 0);
+      continue;
+    }
+
     const src = await load(item.srcKey);
     const [copied] = await out.copyPages(src, [item.index]);
     const intrinsic = copied.getRotation().angle || 0;
     const R = (((intrinsic + (item.rotation || 0)) % 360) + 360) % 360;
     copied.setRotation(degrees(R));
-    const anns = annotations[item.id];
-    if (anns && anns.length) await drawAnnotations(out, copied, anns, R);
+    if (others.length) await drawAnnotations(out, copied, others, R);
     out.addPage(copied);
   }
   return out.save();
