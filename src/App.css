@@ -221,6 +221,16 @@
 .redact-note { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
 .redact-note svg { color: var(--ok); flex: 0 0 auto; }
 
+/* ---------- form fields ---------- */
+.form-overlay { position: absolute; inset: 0; }
+.form-field {
+  position: absolute; box-sizing: border-box; font-size: 13px; padding: 1px 4px;
+  border: 1px solid var(--accent); border-radius: 3px; background: color-mix(in srgb, var(--accent) 9%, #fff);
+  color: #111; outline: none; resize: none; line-height: 1.1;
+}
+.form-field:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); background: #fff; }
+.form-check { position: absolute; box-sizing: border-box; margin: 0; accent-color: var(--accent); cursor: pointer; }
+
 @media (max-width: 720px) {
   .features { grid-template-columns: 1fr; }
   .brand-tag { display: none; }

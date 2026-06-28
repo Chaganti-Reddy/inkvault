@@ -22,9 +22,15 @@ export function PdfProvider({ children }) {
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
   const [annotations, setAnnotations] = useState({}); // pageId -> [{ id, type, ... normalized coords }]
+  const [formValues, setFormValues] = useState({}); // srcKey -> { fieldName: value }
 
   const reset = useCallback(() => {
-    setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false); setAnnotations({});
+    setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false); setAnnotations({}); setFormValues({});
+  }, []);
+
+  const setFormValue = useCallback((srcKey, name, value) => {
+    setFormValues((f) => ({ ...f, [srcKey]: { ...(f[srcKey] || {}), [name]: value } }));
+    setDirty(true);
   }, []);
 
   const openBytes = useCallback(async (data, name) => {
@@ -123,6 +129,7 @@ export function PdfProvider({ children }) {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
     openFile, openBytes, mergeFile, rotatePages, deletePages, duplicatePages, reorderPages, close,
     annotations, addAnnotation, updateAnnotation, removeAnnotation,
+    formValues, setFormValue,
     numPages: pages.length,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

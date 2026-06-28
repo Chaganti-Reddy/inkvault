@@ -14,6 +14,7 @@ dist-ssr
 
 # local scratch
 test.pdf
+form.pdf
 
 # Editor directories and files
 .vscode/*

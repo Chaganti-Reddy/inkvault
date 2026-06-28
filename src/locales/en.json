@@ -47,7 +47,12 @@
     "view": "View",
     "organize": "Pages",
     "annotate": "Annotate",
-    "redact": "Redact"
+    "redact": "Redact",
+    "forms": "Forms"
+  },
+  "forms": {
+    "hint": "Fill the fields below, then Download. Values are baked in and the form is flattened.",
+    "none": "No fillable form fields found in this PDF."
   },
   "redact": {
     "box": "Draw redaction box",

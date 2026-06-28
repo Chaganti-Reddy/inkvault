@@ -6,13 +6,14 @@ import PdfViewer from '../components/PdfViewer.jsx';
 import OrganizePanel from '../components/OrganizePanel.jsx';
 import AnnotatePanel from '../components/AnnotatePanel.jsx';
 import RedactPanel from '../components/RedactPanel.jsx';
+import FormsPanel from '../components/FormsPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes } from '../lib/pdfops.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, numPages, fileName, loading } = usePdf();
+  const { pages, sources, annotations, formValues, numPages, fileName, loading } = usePdf();
   const [tool, setTool] = useState('view');
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
@@ -23,7 +24,7 @@ export default function Editor() {
   const download = async () => {
     setSaving(true);
     try {
-      const bytes = await buildPdf(pages, sources, annotations);
+      const bytes = await buildPdf(pages, sources, annotations, formValues);
       downloadBytes(bytes, fileName || 'document.pdf');
     } finally {
       setSaving(false);
@@ -60,6 +61,7 @@ export default function Editor() {
         {tool === 'organize' && <OrganizePanel />}
         {tool === 'annotate' && <AnnotatePanel />}
         {tool === 'redact' && <RedactPanel />}
+        {tool === 'forms' && <FormsPanel />}
         {loading && <div className="editor-loading">{t('viewer.loading')}</div>}
       </main>
     </div>

@@ -2,14 +2,19 @@
 // the browser; no bytes are ever sent anywhere.
 import { PDFDocument, degrees, rgb } from 'pdf-lib';
 import { rasterizePage } from './pdfview.js';
+import { applyFormValues, flattenForm } from './forms.js';
 
 const REDACT_DPI = 150;
 
-function sourceLoader(sources) {
+function sourceLoader(sources, formValues = {}) {
   const cache = new Map();
   return async (srcKey) => {
     if (!cache.has(srcKey)) {
-      cache.set(srcKey, await PDFDocument.load(sources[srcKey].bytes, { ignoreEncryption: true }));
+      const doc = await PDFDocument.load(sources[srcKey].bytes, { ignoreEncryption: true });
+      // Fill form fields for this source, then flatten so the values are baked into
+      // the page content and survive copyPages into the output document.
+      if (applyFormValues(doc, formValues[srcKey])) flattenForm(doc);
+      cache.set(srcKey, doc);
     }
     return cache.get(srcKey);
   };
@@ -96,9 +101,9 @@ function dataUrlToBytes(dataUrl) {
   return arr;
 }
 
-async function buildFrom(items, sources, annotations = {}) {
+async function buildFrom(items, sources, annotations = {}, formValues = {}) {
   const out = await PDFDocument.create();
-  const load = sourceLoader(sources);
+  const load = sourceLoader(sources, formValues);
   for (const item of items) {
     const anns = annotations[item.id] || [];
     const redacts = anns.filter((a) => a.type === 'redact');
@@ -130,13 +135,13 @@ async function buildFrom(items, sources, annotations = {}) {
   return out.save();
 }
 
-export function buildPdf(pages, sources, annotations) {
-  return buildFrom(pages, sources, annotations);
+export function buildPdf(pages, sources, annotations, formValues) {
+  return buildFrom(pages, sources, annotations, formValues);
 }
 
-export function extractPdf(pages, sources, ids, annotations) {
+export function extractPdf(pages, sources, ids, annotations, formValues) {
   const set = new Set(ids);
-  return buildFrom(pages.filter((p) => set.has(p.id)), sources, annotations);
+  return buildFrom(pages.filter((p) => set.has(p.id)), sources, annotations, formValues);
 }
 
 export function downloadBytes(bytes, name) {

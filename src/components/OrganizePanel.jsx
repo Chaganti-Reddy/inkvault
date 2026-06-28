@@ -7,7 +7,7 @@ import { FiRotateCw, FiTrash2, FiLayers, FiDownload, FiCopy, FiCheckSquare } fro
 
 export default function OrganizePanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, fileName, rotatePages, deletePages, duplicatePages, reorderPages, mergeFile } = usePdf();
+  const { pages, sources, annotations, formValues, fileName, rotatePages, deletePages, duplicatePages, reorderPages, mergeFile } = usePdf();
   const [selected, setSelected] = useState(() => new Set());
   const [lastId, setLastId] = useState(null);
   const [dragIds, setDragIds] = useState(null);
@@ -58,7 +58,7 @@ export default function OrganizePanel() {
 
   const doExtract = async () => {
     const sel = selected.size ? [...selected] : ids;
-    const bytes = await extractPdf(pages, sources, sel, annotations);
+    const bytes = await extractPdf(pages, sources, sel, annotations, formValues);
     downloadBytes(bytes, fileName.replace(/\.pdf$/i, '') + '-extract.pdf');
   };
 
