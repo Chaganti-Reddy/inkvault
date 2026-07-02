@@ -48,7 +48,17 @@
     "organize": "Pages",
     "annotate": "Annotate",
     "redact": "Redact",
-    "forms": "Forms"
+    "forms": "Forms",
+    "ocr": "OCR"
+  },
+  "ocr": {
+    "title": "Make this PDF searchable",
+    "sub": "Scanned or image-only PDF? Add an invisible text layer so you can search, select and copy the text.",
+    "language": "Language",
+    "run": "Run OCR on {{n}} pages",
+    "running": "Reading page {{page}} of {{total}}… {{pct}}%",
+    "done": "Searchable text added to {{n}} pages. Download to keep it.",
+    "note": "Your document stays on your device. The OCR engine downloads once on first use."
   },
   "forms": {
     "hint": "Fill the fields below, then Download. Values are baked in and the form is flattened.",

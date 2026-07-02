@@ -231,6 +231,23 @@
 .form-field:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); background: #fff; }
 .form-check { position: absolute; box-sizing: border-box; margin: 0; accent-color: var(--accent); cursor: pointer; }
 
+/* ---------- ocr ---------- */
+.ocr-panel { flex: 1; overflow: auto; display: flex; align-items: flex-start; justify-content: center; padding: 48px 24px; background: var(--bg); }
+.ocr-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow);
+  padding: 34px; max-width: 460px; width: 100%; text-align: center;
+}
+.ocr-icon { font-size: 34px; color: var(--accent); }
+.ocr-card h2 { margin: 12px 0 6px; font-size: 22px; }
+.ocr-sub { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 20px; }
+.ocr-lang { display: flex; flex-direction: column; gap: 6px; text-align: left; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.ocr-lang select { padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font-size: 14px; }
+.ocr-card .btn.primary { width: 100%; justify-content: center; }
+.ocr-progress { margin-top: 14px; height: 7px; background: var(--surface2); border-radius: 5px; overflow: hidden; }
+.ocr-progress div { height: 100%; background: var(--accent); transition: width 0.2s; }
+.ocr-done { margin-top: 14px; display: inline-flex; align-items: center; gap: 7px; color: var(--ok); font-size: 13.5px; }
+.ocr-note { margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+
 @media (max-width: 720px) {
   .features { grid-template-columns: 1fr; }
   .brand-tag { display: none; }

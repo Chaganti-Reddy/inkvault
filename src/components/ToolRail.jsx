@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { FiEye, FiGrid, FiEdit3, FiEyeOff, FiType } from '../ui/icons.js';
+import { FiEye, FiGrid, FiEdit3, FiEyeOff, FiType, FiSearch } from '../ui/icons.js';
 
 // Left tool switcher. Tools are added here as they ship.
 const TOOLS = [
@@ -8,6 +8,7 @@ const TOOLS = [
   { key: 'annotate', Icon: FiEdit3 },
   { key: 'redact', Icon: FiEyeOff },
   { key: 'forms', Icon: FiType },
+  { key: 'ocr', Icon: FiSearch },
 ];
 
 export default function ToolRail({ tool, setTool }) {

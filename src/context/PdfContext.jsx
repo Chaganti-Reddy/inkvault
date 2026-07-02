@@ -122,13 +122,21 @@ export function PdfProvider({ children }) {
     setAnnotations((a) => ({ ...a, [pageId]: (a[pageId] || []).filter((x) => x.id !== id) }));
     setDirty(true);
   }, []);
+  // Replace the invisible OCR text layer for a page (drops any prior 'otext').
+  const setOcrLayer = useCallback((pageId, items) => {
+    setAnnotations((a) => ({
+      ...a,
+      [pageId]: [...(a[pageId] || []).filter((x) => x.type !== 'otext'), ...items.map((it) => ({ id: nextId(), type: 'otext', ...it }))],
+    }));
+    setDirty(true);
+  }, []);
 
   const close = useCallback(() => { reset(); navigate('/'); }, [reset, navigate]);
 
   const value = {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
     openFile, openBytes, mergeFile, rotatePages, deletePages, duplicatePages, reorderPages, close,
-    annotations, addAnnotation, updateAnnotation, removeAnnotation,
+    annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer,
     formValues, setFormValue,
     numPages: pages.length,
   };

@@ -73,6 +73,14 @@ async function drawAnnotations(out, pageObj, items, R) {
       const fontPt = a.size * Dh;
       const anchor = mapPoint(a.x * Dw, a.y * Dh + fontPt * 0.82, Pw, Ph, R);
       pageObj.drawText(a.text, { x: anchor.ux, y: anchor.uy, size: fontPt, color: hexRgb(a.color), rotate: textRotate });
+    } else if (a.type === 'otext' && a.text) {
+      // Invisible OCR text layer: present for search/copy, painted transparent so the
+      // underlying scan shows through. Skip words the base font can't encode.
+      const fontPt = a.size * Dh;
+      const anchor = mapPoint(a.x * Dw, a.y * Dh + fontPt * 0.82, Pw, Ph, R);
+      try {
+        pageObj.drawText(a.text, { x: anchor.ux, y: anchor.uy, size: fontPt, color: rgb(0, 0, 0), opacity: 0, rotate: textRotate });
+      } catch { /* unencodable glyph — skip this word */ }
     } else if (a.type === 'image') {
       const wdisp = a.w * Dw;
       const hdisp = wdisp * (a.ratio || 0.4); // ratio is the image's pixel h/w; points are square
