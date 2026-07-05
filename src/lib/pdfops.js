@@ -1,7 +1,7 @@
 // Rebuilds real PDF bytes from the page-model using pdf-lib. Everything runs in
 // the browser; no bytes are ever sent anywhere.
 import { PDFDocument, degrees, rgb } from 'pdf-lib';
-import { rasterizePage } from './pdfview.js';
+import { rasterizePage, loadDocument } from './pdfview.js';
 import { applyFormValues, flattenForm } from './forms.js';
 
 const REDACT_DPI = 150;
@@ -150,6 +150,21 @@ export function buildPdf(pages, sources, annotations, formValues) {
 export function extractPdf(pages, sources, ids, annotations, formValues) {
   const set = new Set(ids);
   return buildFrom(pages.filter((p) => set.has(p.id)), sources, annotations, formValues);
+}
+
+// Shrink a PDF by rendering every page to a JPEG at the given DPI/quality and
+// rebuilding as an image PDF. Big wins on scanned/image-heavy documents. Text
+// becomes non-selectable (run OCR first if searchability matters).
+export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65 } = {}) {
+  const doc = await loadDocument(baseBytes.slice());
+  const out = await PDFDocument.create();
+  for (let i = 1; i <= doc.numPages; i++) {
+    const { canvas, pointW, pointH } = await rasterizePage(doc, i, dpi, 0);
+    const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', quality)));
+    const page = out.addPage([pointW, pointH]);
+    page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
+  }
+  return out.save();
 }
 
 export function downloadBytes(bytes, name) {

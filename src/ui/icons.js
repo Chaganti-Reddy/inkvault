@@ -30,5 +30,7 @@ export {
   FiSquare,
   FiPenTool,
   FiEdit2,
+  FiMinimize2,
+  FiUnlock,
 } from 'react-icons/fi';
 export { LuShieldCheck } from 'react-icons/lu';

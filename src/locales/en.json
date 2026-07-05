@@ -49,7 +49,23 @@
     "annotate": "Annotate",
     "redact": "Redact",
     "forms": "Forms",
-    "ocr": "OCR"
+    "ocr": "OCR",
+    "compress": "Compress"
+  },
+  "compress": {
+    "title": "Reduce file size",
+    "sub": "Shrink large or scanned PDFs so they're easy to email and upload.",
+    "high": "High quality",
+    "highDesc": "Lightly compressed, sharp",
+    "balanced": "Balanced",
+    "balancedDesc": "Good size and quality",
+    "small": "Smallest",
+    "smallDesc": "Maximum shrink",
+    "run": "Compress",
+    "working": "Compressing…",
+    "saved": "{{pct}}% smaller",
+    "noGain": "Already small",
+    "note": "Pages are re-rendered as images, so text becomes non-selectable. Run OCR first if you need searchable text."
   },
   "ocr": {
     "title": "Make this PDF searchable",
