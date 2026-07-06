@@ -265,6 +265,10 @@
 .cr-badge { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--surface2); color: var(--muted); }
 .cr-badge.good { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
 
+/* ---------- protect ---------- */
+.ocr-lang input[type="password"] { padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font-size: 14px; }
+.pw-warn { color: var(--danger); font-size: 12.5px; margin: -6px 0 12px; text-align: left; }
+
 @media (max-width: 720px) {
   .features { grid-template-columns: 1fr; }
   .brand-tag { display: none; }

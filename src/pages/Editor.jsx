@@ -9,6 +9,7 @@ import RedactPanel from '../components/RedactPanel.jsx';
 import FormsPanel from '../components/FormsPanel.jsx';
 import OcrPanel from '../components/OcrPanel.jsx';
 import CompressPanel from '../components/CompressPanel.jsx';
+import ProtectPanel from '../components/ProtectPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes } from '../lib/pdfops.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload } from '../ui/icons.js';
@@ -66,6 +67,7 @@ export default function Editor() {
         {tool === 'forms' && <FormsPanel />}
         {tool === 'ocr' && <OcrPanel />}
         {tool === 'compress' && <CompressPanel />}
+        {tool === 'protect' && <ProtectPanel />}
         {loading && <div className="editor-loading">{t('viewer.loading')}</div>}
       </main>
     </div>

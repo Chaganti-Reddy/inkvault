@@ -50,7 +50,20 @@
     "redact": "Redact",
     "forms": "Forms",
     "ocr": "OCR",
-    "compress": "Compress"
+    "compress": "Compress",
+    "protect": "Protect"
+  },
+  "protect": {
+    "title": "Password-protect this PDF",
+    "sub": "Require a password to open the document. Encryption happens on your device.",
+    "password": "Password",
+    "passwordPlaceholder": "Choose a strong password",
+    "confirm": "Confirm password",
+    "mismatch": "Passwords don't match.",
+    "run": "Protect & download",
+    "working": "Encrypting…",
+    "done": "Protected PDF downloaded.",
+    "note": "There is no way to recover this password. Store it somewhere safe."
   },
   "compress": {
     "title": "Reduce file size",
