@@ -26,6 +26,6 @@ form.pdf
 *.njsproj
 *.sln
 *.sw?
-big.pdf
-scan.pdf
-*.pdf
+# local test artifacts (root only, so docs/ screenshots still commit)
+/*.pdf
+/img*.png

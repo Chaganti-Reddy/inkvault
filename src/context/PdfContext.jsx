@@ -1,6 +1,7 @@
 import { createContext, useContext, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadDocument, readFileBytes, isPdf } from '../lib/pdfview.js';
+import { imagesToPdf, isImage } from '../lib/images.js';
 import i18n from '../i18n.js';
 
 const Ctx = createContext(null);
@@ -57,6 +58,22 @@ export function PdfProvider({ children }) {
     if (!isPdf(file)) { setError(i18n.t('home.errorType')); return; }
     const data = await readFileBytes(file);
     await openBytes(data, file.name);
+  }, [openBytes]);
+
+  // Build a PDF from image files (one per page) and open it.
+  const importImages = useCallback(async (files) => {
+    const imgs = [...files].filter(isImage);
+    if (!imgs.length) { setError(i18n.t('home.errorImage')); return; }
+    setError('');
+    setLoading(true);
+    try {
+      const bytes = await imagesToPdf(imgs);
+      await openBytes(bytes, 'images.pdf');
+    } catch (e) {
+      setError(e?.message || String(e));
+    } finally {
+      setLoading(false);
+    }
   }, [openBytes]);
 
   // Merge another PDF's pages onto the end of the model.
@@ -135,7 +152,7 @@ export function PdfProvider({ children }) {
 
   const value = {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
-    openFile, openBytes, mergeFile, rotatePages, deletePages, duplicatePages, reorderPages, close,
+    openFile, openBytes, mergeFile, importImages, rotatePages, deletePages, duplicatePages, reorderPages, close,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer,
     formValues, setFormValue,
     numPages: pages.length,

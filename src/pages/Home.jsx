@@ -16,15 +16,18 @@ const FEATURES = [
 
 export default function Home() {
   const { t } = useTranslation();
-  const { openFile, error } = usePdf();
+  const { openFile, importImages, error } = usePdf();
   const inputRef = useRef(null);
+  const imgRef = useRef(null);
   const [dragging, setDragging] = useState(false);
 
   const onDrop = (e) => {
     e.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) openFile(file);
+    const files = [...(e.dataTransfer.files || [])];
+    if (!files.length) return;
+    if (files[0].type === 'application/pdf' || /\.pdf$/i.test(files[0].name)) openFile(files[0]);
+    else importImages(files);
   };
 
   return (
@@ -43,13 +46,24 @@ export default function Home() {
           <FiUpload className="dz-icon" />
           <div className="dz-title">{t('home.drop')}</div>
           <div className="dz-or">{t('home.or')}</div>
-          <button className="btn primary" type="button">{t('home.choose')}</button>
+          <div className="dz-buttons">
+            <button className="btn primary" type="button">{t('home.choose')}</button>
+            <button className="btn" type="button" onClick={(e) => { e.stopPropagation(); imgRef.current?.click(); }}>{t('home.chooseImages')}</button>
+          </div>
           <input
             ref={inputRef}
             type="file"
             accept="application/pdf,.pdf"
             hidden
             onChange={(e) => e.target.files?.[0] && openFile(e.target.files[0])}
+          />
+          <input
+            ref={imgRef}
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={(e) => e.target.files?.length && importImages(e.target.files)}
           />
         </div>
 

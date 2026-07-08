@@ -56,6 +56,7 @@
 .dz-icon { font-size: 40px; color: var(--accent); }
 .dz-title { font-size: 18px; font-weight: 700; }
 .dz-or { color: var(--muted); font-size: 13px; }
+.dz-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
 .error {
   margin: 18px auto 0; max-width: 560px; color: var(--danger); font-size: 14px;
