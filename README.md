@@ -1,16 +1,88 @@
-# React + Vite
+<div align="center">
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+<img src="public/favicon.svg" width="72" alt="InkVault" />
 
-Currently, two official plugins are available:
+# InkVault
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**A private PDF studio that runs entirely in your browser.**
 
-## React Compiler
+Merge, annotate, sign, redact, fill forms, OCR, compress and password-protect PDFs —
+without uploading a single byte. No account, no limits, no watermark.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+&nbsp;·&nbsp; 100% client-side &nbsp;·&nbsp; No backend &nbsp;·&nbsp; Free forever
 
-## Expanding the Oxlint configuration
+</div>
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+---
+
+## Why
+
+Most "free" PDF tools upload your file to a server, cap you after a few uses, stamp a
+watermark, or hide full-resolution output behind a subscription. Acrobat Pro costs
+$15–23/month. For anything sensitive — contracts, IDs, medical, financial — sending the
+document to someone else's server is the whole problem.
+
+InkVault does the opposite: **every operation runs on your device.** Your file never
+leaves the browser tab. There is no server to upload to, nothing to sign up for, and no
+cap on how much you use it.
+
+## Features
+
+| | |
+|---|---|
+| **Organize** | Merge, split, reorder (drag & drop), rotate, delete and duplicate pages. |
+| **Annotate & sign** | Text, highlighter, freehand pen, rectangles, and signatures (draw, type or upload). |
+| **Redact** | Draw a box and the underlying content is **truly removed** on export — the page is flattened, not just covered with black. |
+| **Fill forms** | Fill AcroForm fields (text, checkboxes, radios, dropdowns) then flatten them into the page. |
+| **OCR** | Turn scanned/image PDFs into searchable, selectable text in 100+ languages. |
+| **Compress** | Shrink large or scanned PDFs with a quality dial and live before/after sizes. |
+| **Protect** | Password-encrypt a PDF so it can't be opened without the password. |
+| **Images → PDF** | Drop JPG/PNG images to build a PDF, one image per page. |
+
+Everything ends in a single **Download** that bakes your edits into a clean PDF.
+
+## Screenshots
+
+| Home | Organize pages |
+|---|---|
+| ![Home](docs/images/home-light.png) | ![Organize](docs/images/organize-light.png) |
+
+| OCR | Home (dark) |
+|---|---|
+| ![OCR](docs/images/ocr-light.png) | ![Dark](docs/images/home-dark.png) |
+
+## How it works
+
+InkVault is a static single-page app. There is no backend.
+
+- **[pdf.js](https://mozilla.github.io/pdf.js/)** renders pages to canvas for viewing and thumbnails.
+- **[pdf-lib](https://pdf-lib.js.org/)** rebuilds the document on export — copying pages, applying rotation, and baking annotations, form values and redactions into real PDF content.
+- **[tesseract.js](https://tesseract.projectnaptha.com/)** performs OCR on-device (the engine downloads once from a CDN; your document is never sent anywhere).
+- **[@cantoo/pdf-lib](https://www.npmjs.com/package/@cantoo/pdf-lib)** adds standard password encryption for the Protect tool.
+
+Annotations are stored as normalized coordinates and mapped onto the page at export
+time, accounting for each page's rotation, so what you see is what you get.
+
+## Run locally
+
+```bash
+npm install
+npm run dev      # start the dev server
+npm run build    # production build to dist/
+npm run preview  # preview the production build
+```
+
+Requires Node 18+.
+
+## Deploy
+
+It's a static site — any static host works. The included `netlify.toml` and
+`public/_redirects` set the single-page-app fallback.
+
+- **Cloudflare Pages / Netlify:** build command `npm run build`, output directory `dist`.
+- **Any static host:** serve `dist/` and route unknown paths to `index.html`.
+
+## License
+
+[MIT](LICENSE) © Chaganti Reddy
