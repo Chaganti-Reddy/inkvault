@@ -4,6 +4,7 @@ import { usePdf } from '../context/PdfContext.jsx';
 import {
   FiUpload, FiLayers, FiEdit3, FiEyeOff, FiSearch, FiType, FiLock, LuShieldCheck,
 } from '../ui/icons.js';
+// FiLock is used both in the feature grid and the unlock modal.
 
 const FEATURES = [
   { key: 'organize', Icon: FiLayers },
@@ -16,10 +17,11 @@ const FEATURES = [
 
 export default function Home() {
   const { t } = useTranslation();
-  const { openFile, importImages, error } = usePdf();
+  const { openFile, importImages, error, locked, unlocking, unlockWithPassword, cancelUnlock } = usePdf();
   const inputRef = useRef(null);
   const imgRef = useRef(null);
   const [dragging, setDragging] = useState(false);
+  const [pw, setPw] = useState('');
 
   const onDrop = (e) => {
     e.preventDefault();
@@ -71,6 +73,34 @@ export default function Home() {
 
         <div className="privacy-line"><LuShieldCheck /> {t('home.privacy')}</div>
       </section>
+
+      {locked && (
+        <div className="modal-backdrop" onClick={cancelUnlock}>
+          <form
+            className="modal pw-modal"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => { e.preventDefault(); if (pw) unlockWithPassword(pw); }}
+          >
+            <FiLock className="pw-icon" />
+            <h3>{t('home.lockedTitle')}</h3>
+            <p className="pw-sub">{t('home.lockedSub', { name: locked.name })}</p>
+            <input
+              type="password"
+              autoFocus
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+              placeholder={t('home.passwordPlaceholder')}
+            />
+            {error && <div className="error">{error}</div>}
+            <div className="pw-actions">
+              <button type="button" className="btn" onClick={cancelUnlock}>{t('common.cancel')}</button>
+              <button type="submit" className="btn primary" disabled={!pw || unlocking}>
+                {unlocking ? t('home.unlocking') : t('home.unlock')}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <section className="features">
         {FEATURES.map(({ key, Icon }) => (

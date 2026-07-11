@@ -19,6 +19,12 @@
     "privacy": "Everything runs on your device. Your files are never uploaded.",
     "errorType": "That doesn't look like a PDF. Try another file.",
     "errorImage": "Those don't look like images. Try JPG or PNG files.",
+    "errorPassword": "Wrong password. Try again.",
+    "lockedTitle": "This PDF is password-protected",
+    "lockedSub": "Enter the password to open {{name}}.",
+    "passwordPlaceholder": "Password",
+    "unlock": "Unlock",
+    "unlocking": "Unlocking…",
     "features": {
       "organize": "Organize pages",
       "organizeSub": "Merge, split, reorder, rotate, delete.",

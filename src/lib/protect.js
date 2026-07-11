@@ -8,3 +8,10 @@ export async function protectBytes(baseBytes, password) {
   doc.encrypt({ userPassword: password, ownerPassword: password });
   return doc.save();
 }
+
+// Decrypt a password-protected PDF into plain bytes so the rest of the app (pdf.js
+// and base pdf-lib) can work with it normally. Throws if the password is wrong.
+export async function decryptBytes(bytes, password) {
+  const doc = await PDFDocument.load(bytes.slice(), { password });
+  return doc.save();
+}

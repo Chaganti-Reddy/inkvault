@@ -2,6 +2,7 @@ import { createContext, useContext, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadDocument, readFileBytes, isPdf } from '../lib/pdfview.js';
 import { imagesToPdf, isImage } from '../lib/images.js';
+import { decryptBytes } from '../lib/protect.js';
 import i18n from '../i18n.js';
 
 const Ctx = createContext(null);
@@ -22,11 +23,13 @@ export function PdfProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
+  const [locked, setLocked] = useState(null); // { bytes, name } when an encrypted PDF needs a password
+  const [unlocking, setUnlocking] = useState(false);
   const [annotations, setAnnotations] = useState({}); // pageId -> [{ id, type, ... normalized coords }]
   const [formValues, setFormValues] = useState({}); // srcKey -> { fieldName: value }
 
   const reset = useCallback(() => {
-    setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false); setAnnotations({}); setFormValues({});
+    setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false); setAnnotations({}); setFormValues({}); setLocked(null);
   }, []);
 
   const setFormValue = useCallback((srcKey, name, value) => {
@@ -39,13 +42,20 @@ export function PdfProvider({ children }) {
     setLoading(true);
     try {
       const canonical = data instanceof Uint8Array ? data : new Uint8Array(data);
-      const doc = await loadDocument(canonical.slice());
+      let doc;
+      try {
+        doc = await loadDocument(canonical.slice());
+      } catch (e) {
+        if (e?.name === 'PasswordException') { setLocked({ bytes: canonical, name: name || 'document.pdf' }); return; }
+        throw e;
+      }
       const key = 's0';
       const items = Array.from({ length: doc.numPages }, (_, i) => ({ id: nextId(), srcKey: key, index: i, rotation: 0 }));
       setSources({ [key]: { bytes: canonical, doc, name: name || 'document.pdf' } });
       setPages(items);
       setFileName(name || 'document.pdf');
       setDirty(false);
+      setLocked(null);
       navigate('/edit');
     } catch (e) {
       setError(e?.message || String(e));
@@ -53,6 +63,25 @@ export function PdfProvider({ children }) {
       setLoading(false);
     }
   }, [navigate]);
+
+  // Decrypt a locked PDF with the supplied password, then open the plain bytes.
+  const unlockWithPassword = useCallback(async (password) => {
+    if (!locked) return;
+    setUnlocking(true);
+    setError('');
+    try {
+      const plain = await decryptBytes(locked.bytes, password);
+      const name = locked.name;
+      setLocked(null);
+      await openBytes(plain, name);
+    } catch {
+      setError(i18n.t('home.errorPassword'));
+    } finally {
+      setUnlocking(false);
+    }
+  }, [locked, openBytes]);
+
+  const cancelUnlock = useCallback(() => { setLocked(null); setError(''); }, []);
 
   const openFile = useCallback(async (file) => {
     if (!isPdf(file)) { setError(i18n.t('home.errorType')); return; }
@@ -152,6 +181,7 @@ export function PdfProvider({ children }) {
 
   const value = {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
+    locked, unlocking, unlockWithPassword, cancelUnlock,
     openFile, openBytes, mergeFile, importImages, rotatePages, deletePages, duplicatePages, reorderPages, close,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer,
     formValues, setFormValue,
