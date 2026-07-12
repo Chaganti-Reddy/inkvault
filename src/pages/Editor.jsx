@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
@@ -16,11 +16,19 @@ import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, numPages, fileName, loading } = usePdf();
+  const { pages, sources, annotations, formValues, numPages, fileName, loading, dirty } = usePdf();
   const [tool, setTool] = useState('view');
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
   const [saving, setSaving] = useState(false);
+
+  // Warn before leaving with unsaved edits (edits live only in memory, by design).
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const warn = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
 
   if (!numPages && !loading) return <Navigate to="/" replace />;
 
