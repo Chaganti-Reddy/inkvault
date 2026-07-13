@@ -1,7 +1,7 @@
 // Form filling via pdf-lib. Values are applied to a document's AcroForm and then
 // flattened (appearances baked into the page, interactivity removed) so the result
 // survives page copying/merging in the export pipeline.
-import { PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFOptionList } from 'pdf-lib';
+import { PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFOptionList } from '@cantoo/pdf-lib';
 
 // values: { fieldName: string | boolean }. Returns true if anything was applied.
 export function applyFormValues(doc, values) {

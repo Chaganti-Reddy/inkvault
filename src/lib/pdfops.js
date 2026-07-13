@@ -1,6 +1,6 @@
 // Rebuilds real PDF bytes from the page-model using pdf-lib. Everything runs in
 // the browser; no bytes are ever sent anywhere.
-import { PDFDocument, degrees, rgb } from 'pdf-lib';
+import { PDFDocument, degrees, rgb } from '@cantoo/pdf-lib';
 import { rasterizePage, loadDocument } from './pdfview.js';
 import { applyFormValues, flattenForm } from './forms.js';
 

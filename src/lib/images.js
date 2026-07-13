@@ -1,6 +1,6 @@
 // Build a PDF from image files, one image per page. JPEG/PNG embed directly; other
 // formats (webp, gif, bmp) are converted to PNG via a canvas first. All in-browser.
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument } from '@cantoo/pdf-lib';
 
 function readBytes(file) {
   return new Promise((resolve, reject) => {
