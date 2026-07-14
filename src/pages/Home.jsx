@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
 import {
@@ -17,11 +17,18 @@ const FEATURES = [
 
 export default function Home() {
   const { t } = useTranslation();
-  const { openFile, importImages, error, locked, unlocking, unlockWithPassword, cancelUnlock } = usePdf();
+  const { openFile, importImages, error, loading, locked, unlocking, unlockWithPassword, cancelUnlock } = usePdf();
   const inputRef = useRef(null);
   const imgRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [pw, setPw] = useState('');
+
+  useEffect(() => {
+    if (!locked) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') cancelUnlock(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [locked, cancelUnlock]);
 
   const onDrop = (e) => {
     e.preventDefault();
@@ -39,19 +46,28 @@ export default function Home() {
         <p className="hero-sub">{t('home.sub')}</p>
 
         <div
-          className={`dropzone ${dragging ? 'drag' : ''}`}
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          className={`dropzone ${dragging ? 'drag' : ''} ${loading ? 'loading' : ''}`}
+          onDragOver={(e) => { e.preventDefault(); if (!loading) setDragging(true); }}
           onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
-          onClick={() => inputRef.current?.click()}
+          onDrop={(e) => !loading && onDrop(e)}
+          onClick={() => !loading && inputRef.current?.click()}
         >
-          <FiUpload className="dz-icon" />
-          <div className="dz-title">{t('home.drop')}</div>
-          <div className="dz-or">{t('home.or')}</div>
-          <div className="dz-buttons">
-            <button className="btn primary" type="button">{t('home.choose')}</button>
-            <button className="btn" type="button" onClick={(e) => { e.stopPropagation(); imgRef.current?.click(); }}>{t('home.chooseImages')}</button>
-          </div>
+          {loading ? (
+            <>
+              <span className="dz-spinner" />
+              <div className="dz-title">{t('home.working')}</div>
+            </>
+          ) : (
+            <>
+              <FiUpload className="dz-icon" />
+              <div className="dz-title">{t('home.drop')}</div>
+              <div className="dz-or">{t('home.or')}</div>
+              <div className="dz-buttons">
+                <button className="btn primary" type="button">{t('home.choose')}</button>
+                <button className="btn" type="button" onClick={(e) => { e.stopPropagation(); imgRef.current?.click(); }}>{t('home.chooseImages')}</button>
+              </div>
+            </>
+          )}
           <input
             ref={inputRef}
             type="file"

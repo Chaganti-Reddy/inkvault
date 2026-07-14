@@ -57,6 +57,13 @@
 .dz-title { font-size: 18px; font-weight: 700; }
 .dz-or { color: var(--muted); font-size: 13px; }
 .dz-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.dropzone.loading { cursor: default; }
+.dz-spinner {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid var(--accent-weak); border-top-color: var(--accent);
+  animation: iv-spin 0.7s linear infinite;
+}
+@keyframes iv-spin { to { transform: rotate(360deg); } }
 
 .error {
   margin: 18px auto 0; max-width: 560px; color: var(--danger); font-size: 14px;
@@ -283,4 +290,13 @@
   .brand-tag { display: none; }
   .privacy-badge span, .privacy-badge { font-size: 0; padding: 6px; }
   .privacy-badge svg { font-size: 16px; }
+}
+
+/* Narrow screens: compact, icon-only tool rail */
+@media (max-width: 640px) {
+  .tool-rail { width: 56px; flex: 0 0 56px; padding: 10px 4px; }
+  .tool-btn { font-size: 0; padding: 10px 4px; }
+  .tool-btn svg { font-size: 20px; }
+  .file-chip { max-width: 110px; }
+  .toolbar { padding: 8px 10px; }
 }
