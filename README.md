@@ -8,6 +8,10 @@
 
 Merge, annotate, sign, redact, fill forms, OCR, compress and password-protect PDFs — without uploading a single byte. No account, no limits, no watermark.
 
+### [→ Try it live at inkvaultpdf.pages.dev](https://inkvaultpdf.pages.dev)
+
+[![Live demo](https://img.shields.io/badge/demo-inkvaultpdf.pages.dev-574fd6)](https://inkvaultpdf.pages.dev)
+&nbsp;
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 &nbsp;·&nbsp; 100% client-side &nbsp;·&nbsp; No backend &nbsp;·&nbsp; Free forever
 
