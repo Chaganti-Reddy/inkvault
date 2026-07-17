@@ -256,6 +256,12 @@
 .ocr-done { margin-top: 14px; display: inline-flex; align-items: center; gap: 7px; color: var(--ok); font-size: 13.5px; }
 .ocr-note { margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1.4; }
 
+/* ---------- stamp (watermark + page numbers) ---------- */
+.stamp-cards { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; justify-content: center; }
+.stamp-cards .ocr-card { max-width: 360px; }
+.stamp-cards .ocr-lang input[type="range"] { padding: 0; }
+.stamp-clear { margin-top: 10px; }
+
 /* ---------- compress ---------- */
 .level-pick { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
 .level-btn {

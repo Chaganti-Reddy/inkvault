@@ -168,6 +168,22 @@ export function PdfProvider({ children }) {
     setAnnotations((a) => ({ ...a, [pageId]: (a[pageId] || []).filter((x) => x.id !== id) }));
     setDirty(true);
   }, []);
+  // Replace all annotations of a given type across pages (used by watermark and
+  // page-number stamps). `byPageId` maps a page id to the new annotations for it.
+  const applyStamps = useCallback((type, byPageId) => {
+    setAnnotations((prev) => {
+      const next = { ...prev };
+      const ids = new Set([...Object.keys(prev), ...Object.keys(byPageId)]);
+      for (const pid of ids) {
+        const kept = (prev[pid] || []).filter((a) => a.type !== type);
+        const add = (byPageId[pid] || []).map((a) => ({ id: nextId(), ...a }));
+        next[pid] = [...kept, ...add];
+      }
+      return next;
+    });
+    setDirty(true);
+  }, []);
+
   // Replace the invisible OCR text layer for a page (drops any prior 'otext').
   const setOcrLayer = useCallback((pageId, items) => {
     setAnnotations((a) => ({
@@ -183,7 +199,7 @@ export function PdfProvider({ children }) {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
     locked, unlocking, unlockWithPassword, cancelUnlock,
     openFile, openBytes, mergeFile, importImages, rotatePages, deletePages, duplicatePages, reorderPages, close,
-    annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer,
+    annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps,
     formValues, setFormValue,
     numPages: pages.length,
   };

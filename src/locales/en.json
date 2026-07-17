@@ -57,6 +57,7 @@
     "annotate": "Annotate",
     "redact": "Redact",
     "forms": "Forms",
+    "stamp": "Stamp",
     "ocr": "OCR",
     "compress": "Compress",
     "protect": "Protect"
@@ -87,6 +88,25 @@
     "saved": "{{pct}}% smaller",
     "noGain": "Already small",
     "note": "Pages are re-rendered as images, so text becomes non-selectable. Run OCR first if you need searchable text."
+  },
+  "stamp": {
+    "wmTitle": "Watermark",
+    "wmSub": "Stamp text diagonally across every page.",
+    "wmText": "Watermark text",
+    "wmOpacity": "Opacity ({{pct}}%)",
+    "wmApply": "Apply to {{n}} pages",
+    "numTitle": "Page numbers",
+    "numSub": "Add page numbers in the position and format you choose.",
+    "numFormat": "Format",
+    "numPosition": "Position",
+    "numStart": "Start at",
+    "numApply": "Number {{n}} pages",
+    "posBottomCenter": "Bottom center",
+    "posBottomRight": "Bottom right",
+    "posBottomLeft": "Bottom left",
+    "posTopCenter": "Top center",
+    "posTopRight": "Top right",
+    "remove": "Remove"
   },
   "ocr": {
     "title": "Make this PDF searchable",

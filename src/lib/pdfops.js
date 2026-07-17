@@ -1,6 +1,6 @@
 // Rebuilds real PDF bytes from the page-model using pdf-lib. Everything runs in
 // the browser; no bytes are ever sent anywhere.
-import { PDFDocument, degrees, rgb } from '@cantoo/pdf-lib';
+import { PDFDocument, StandardFonts, degrees, rgb } from '@cantoo/pdf-lib';
 import { rasterizePage, loadDocument } from './pdfview.js';
 import { applyFormValues, flattenForm } from './forms.js';
 
@@ -43,11 +43,32 @@ function mapPoint(dx, dy, Pw, Ph, R) {
   return { ux: tx, uy: Ph - ty };
 }
 
-// Bake one page's annotations onto a pdf-lib page.
-async function drawAnnotations(out, pageObj, items, R) {
+// Bake one page's annotations onto a pdf-lib page. `font` is an embedded Helvetica
+// used for text measurement (alignment) and consistent drawing.
+async function drawAnnotations(out, pageObj, items, R, font) {
   const { width: Pw, height: Ph } = pageObj.getSize();
   const { Dw, Dh } = displayDims(Pw, Ph, R);
-  const textRotate = degrees((360 - R) % 360);
+  const baseRotate = (360 - R) % 360;
+  const textRotate = degrees(baseRotate);
+
+  // Draw text with optional opacity, extra angle (watermark) and alignment. Alignment
+  // uses real font metrics and is applied in display space (exact for unrotated pages).
+  const drawTextAnn = (a) => {
+    const fontPt = a.size * Dh;
+    const angle = a.angle || 0;
+    let dx = a.x * Dw;
+    if ((a.align === 'center' || a.align === 'right') && angle === 0) {
+      const w = font.widthOfTextAtSize(a.text, fontPt);
+      dx -= a.align === 'center' ? w / 2 : w;
+    }
+    const anchor = mapPoint(dx, a.y * Dh + fontPt * 0.82, Pw, Ph, R);
+    pageObj.drawText(a.text, {
+      x: anchor.ux, y: anchor.uy, size: fontPt, font,
+      color: a.opacity === 0 ? rgb(0, 0, 0) : hexRgb(a.color),
+      opacity: a.opacity == null ? 1 : a.opacity,
+      rotate: degrees((baseRotate + angle) % 360),
+    });
+  };
 
   const rectFromDisplay = (x, y, w, h) => {
     const a = mapPoint(x * Dw, y * Dh, Pw, Ph, R);
@@ -69,17 +90,15 @@ async function drawAnnotations(out, pageObj, items, R) {
         const p2 = mapPoint(a.points[i].x * Dw, a.points[i].y * Dh, Pw, Ph, R);
         pageObj.drawLine({ start: { x: p1.ux, y: p1.uy }, end: { x: p2.ux, y: p2.uy }, thickness, color: hexRgb(a.color), lineCap: 1 });
       }
-    } else if (a.type === 'text' && a.text) {
-      const fontPt = a.size * Dh;
-      const anchor = mapPoint(a.x * Dw, a.y * Dh + fontPt * 0.82, Pw, Ph, R);
-      pageObj.drawText(a.text, { x: anchor.ux, y: anchor.uy, size: fontPt, color: hexRgb(a.color), rotate: textRotate });
+    } else if ((a.type === 'text' || a.type === 'watermark' || a.type === 'pagenum') && a.text) {
+      try { drawTextAnn(a); } catch { /* unencodable glyph — skip */ }
     } else if (a.type === 'otext' && a.text) {
       // Invisible OCR text layer: present for search/copy, painted transparent so the
       // underlying scan shows through. Skip words the base font can't encode.
       const fontPt = a.size * Dh;
       const anchor = mapPoint(a.x * Dw, a.y * Dh + fontPt * 0.82, Pw, Ph, R);
       try {
-        pageObj.drawText(a.text, { x: anchor.ux, y: anchor.uy, size: fontPt, color: rgb(0, 0, 0), opacity: 0, rotate: textRotate });
+        pageObj.drawText(a.text, { x: anchor.ux, y: anchor.uy, size: fontPt, font, color: rgb(0, 0, 0), opacity: 0, rotate: textRotate });
       } catch { /* unencodable glyph — skip this word */ }
     } else if (a.type === 'image') {
       const wdisp = a.w * Dw;
@@ -111,6 +130,7 @@ function dataUrlToBytes(dataUrl) {
 
 async function buildFrom(items, sources, annotations = {}, formValues = {}) {
   const out = await PDFDocument.create();
+  const font = await out.embedFont(StandardFonts.Helvetica);
   const load = sourceLoader(sources, formValues);
   for (const item of items) {
     const anns = annotations[item.id] || [];
@@ -128,7 +148,7 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}) {
       const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', 0.92)));
       const page = out.addPage([pointW, pointH]);
       page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
-      if (others.length) await drawAnnotations(out, page, others, 0);
+      if (others.length) await drawAnnotations(out, page, others, 0, font);
       continue;
     }
 
@@ -137,7 +157,7 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}) {
     const intrinsic = copied.getRotation().angle || 0;
     const R = (((intrinsic + (item.rotation || 0)) % 360) + 360) % 360;
     copied.setRotation(degrees(R));
-    if (others.length) await drawAnnotations(out, copied, others, R);
+    if (others.length) await drawAnnotations(out, copied, others, R, font);
     out.addPage(copied);
   }
   return out.save();
