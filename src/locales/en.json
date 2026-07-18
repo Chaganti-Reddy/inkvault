@@ -51,6 +51,10 @@
     "rendering": "Rendering pages…",
     "saving": "Saving…"
   },
+  "editor": {
+    "undo": "Undo",
+    "redo": "Redo"
+  },
   "tool": {
     "view": "View",
     "organize": "Pages",

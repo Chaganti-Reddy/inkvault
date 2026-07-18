@@ -13,11 +13,11 @@ import ProtectPanel from '../components/ProtectPanel.jsx';
 import StampPanel from '../components/StampPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes } from '../lib/pdfops.js';
-import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload } from '../ui/icons.js';
+import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, numPages, fileName, loading, dirty } = usePdf();
+  const { pages, sources, annotations, formValues, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo } = usePdf();
   const [tool, setTool] = useState('view');
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
@@ -30,6 +30,19 @@ export default function Editor() {
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
+
+  // Undo/redo keyboard shortcuts (ignored while typing in a field).
+  useEffect(() => {
+    const onKey = (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+      if (typing || !(e.ctrlKey || e.metaKey)) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [undo, redo]);
 
   if (!numPages && !loading) return <Navigate to="/" replace />;
 
@@ -49,8 +62,9 @@ export default function Editor() {
       <main className="editor">
         <div className="toolbar">
           <div className="toolbar-left">
+            <button className="icon-btn" onClick={undo} disabled={!canUndo} title={t('editor.undo')} aria-label={t('editor.undo')}><FiCornerUpLeft /></button>
+            <button className="icon-btn" onClick={redo} disabled={!canRedo} title={t('editor.redo')} aria-label={t('editor.redo')}><FiCornerUpRight /></button>
             {tool === 'view' && <span className="page-indicator">{t('viewer.page', { n: pageInView, total: numPages })}</span>}
-            {tool === 'organize' && <span className="page-indicator">{t('tool.organize')}</span>}
           </div>
           <div className="toolbar-center">
             {tool === 'view' && (

@@ -34,5 +34,7 @@ export {
   FiUnlock,
   FiDroplet,
   FiHash,
+  FiCornerUpLeft,
+  FiCornerUpRight,
 } from 'react-icons/fi';
 export { LuShieldCheck } from 'react-icons/lu';

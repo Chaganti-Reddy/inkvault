@@ -20,6 +20,9 @@
   transition: background 0.15s, color 0.15s;
 }
 .icon-btn:hover { background: var(--surface2); color: var(--text); }
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+.icon-btn:disabled:hover { background: transparent; color: var(--muted); }
+.toolbar-left { display: flex; align-items: center; gap: 4px; }
 
 /* ---------- top bar ---------- */
 .topbar {
