@@ -2,6 +2,14 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0]
+
+- **Undo/redo** across page, annotation, stamp and form edits, with ⌘/Ctrl+Z and ⌘/Ctrl+Shift+Z (or Ctrl+Y).
+- **Stamp** tool — diagonal watermarks and page numbers (several formats and positions), aligned using real font metrics.
+- **Extract text** — save all selectable text, including OCR output, to a `.txt` file.
+- **Open password-protected PDFs** — prompts for the password and unlocks locally.
+- **Installable PWA** — a service worker precaches the app so it works fully offline after the first visit.
+
 ## [1.0.0]
 
 First public release. A complete, 100% client-side PDF studio.
