@@ -187,6 +187,30 @@ export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65 } = {
   return out.save();
 }
 
+// Extract all selectable text from the edited document (reflects reorder, redaction
+// and OCR). Returns one block per page.
+export async function extractText(pages, sources, annotations, formValues) {
+  const bytes = await buildFrom(pages, sources, annotations, formValues);
+  const doc = await loadDocument(bytes.slice());
+  const parts = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const tc = await page.getTextContent();
+    parts.push(tc.items.map((it) => it.str).join(' ').replace(/\s+\n/g, '\n').trim());
+  }
+  return parts.join('\n\n');
+}
+
+export function downloadText(text, name) {
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name || 'document.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function downloadBytes(bytes, name) {
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);

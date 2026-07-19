@@ -53,7 +53,10 @@
   },
   "editor": {
     "undo": "Undo",
-    "redo": "Redo"
+    "redo": "Redo",
+    "textBtn": "Text",
+    "extractText": "Extract text to a .txt file",
+    "extracting": "Extracting…"
   },
   "tool": {
     "view": "View",

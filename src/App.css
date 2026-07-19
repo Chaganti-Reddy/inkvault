@@ -111,6 +111,7 @@
   flex: 0 0 auto;
 }
 .toolbar-center { display: flex; align-items: center; gap: 4px; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
 .page-indicator { color: var(--muted); font-size: 13px; }
 .zoom-val { font-size: 13px; color: var(--muted); min-width: 44px; text-align: center; }
 

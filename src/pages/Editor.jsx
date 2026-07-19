@@ -12,8 +12,8 @@ import CompressPanel from '../components/CompressPanel.jsx';
 import ProtectPanel from '../components/ProtectPanel.jsx';
 import StampPanel from '../components/StampPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
-import { buildPdf, downloadBytes } from '../lib/pdfops.js';
-import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight } from '../ui/icons.js';
+import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfops.js';
+import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
@@ -22,6 +22,7 @@ export default function Editor() {
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
 
   // Warn before leaving with unsaved edits (edits live only in memory, by design).
   useEffect(() => {
@@ -56,6 +57,16 @@ export default function Editor() {
     }
   };
 
+  const exportText = async () => {
+    setExtracting(true);
+    try {
+      const text = await extractText(pages, sources, annotations, formValues);
+      downloadText(text, (fileName || 'document').replace(/\.pdf$/i, '') + '.txt');
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   return (
     <div className="editor-shell">
       <ToolRail tool={tool} setTool={setTool} />
@@ -77,6 +88,9 @@ export default function Editor() {
             )}
           </div>
           <div className="toolbar-right">
+            <button className="btn sm" onClick={exportText} disabled={extracting} title={t('editor.extractText')}>
+              <FiFileText /> {extracting ? t('editor.extracting') : t('editor.textBtn')}
+            </button>
             <button className="btn primary sm" onClick={download} disabled={saving}>
               <FiDownload /> {saving ? t('viewer.saving') : t('common.download')}
             </button>
