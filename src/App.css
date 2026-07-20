@@ -120,10 +120,15 @@
   padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;
 }
 .pdf-page {
+  position: relative;
   background: var(--surface); box-shadow: var(--shadow); border-radius: 4px; overflow: hidden;
   min-height: 120px;
 }
 .pdf-canvas { display: block; }
+.anno-view { position: absolute; top: 0; left: 0; pointer-events: none; }
+.anno-view svg { position: absolute; inset: 0; }
+.anno-view-img { position: absolute; }
+.anno-view-text { position: absolute; line-height: 1.15; white-space: pre-wrap; }
 .editor-loading { padding: 40px; text-align: center; color: var(--muted); }
 
 /* ---------- organize ---------- */

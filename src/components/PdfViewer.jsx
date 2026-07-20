@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { renderPage } from '../lib/pdfview.js';
+import AnnotationView from './AnnotationView.jsx';
 
 // One page rendered from its source document. Renders lazily the first time it
 // scrolls near the viewport, and re-renders when width or rotation changes.
-function Page({ page, source, displayNumber, width, onVisible }) {
+function Page({ page, source, displayNumber, width, items, onVisible }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const [seen, setSeen] = useState(false);
+  const [size, setSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -23,7 +25,8 @@ function Page({ page, source, displayNumber, width, onVisible }) {
     let cancelled = false;
     (async () => {
       try {
-        if (!cancelled) await renderPage(source.doc, page.index + 1, width, canvasRef.current, page.rotation);
+        const dim = await renderPage(source.doc, page.index + 1, width, canvasRef.current, page.rotation);
+        if (!cancelled) setSize({ w: dim.width, h: dim.height });
       } catch { /* render can be cancelled on fast scroll/zoom; ignore */ }
     })();
     return () => { cancelled = true; };
@@ -32,11 +35,12 @@ function Page({ page, source, displayNumber, width, onVisible }) {
   return (
     <div className="pdf-page" ref={wrapRef} data-page={displayNumber}>
       <canvas ref={canvasRef} className="pdf-canvas" />
+      <AnnotationView items={items} w={size.w} h={size.h} />
     </div>
   );
 }
 
-export default function PdfViewer({ pages, sources, zoom = 1, onPageInView }) {
+export default function PdfViewer({ pages, sources, annotations = {}, zoom = 1, onPageInView }) {
   const scrollRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(0);
 
@@ -61,6 +65,7 @@ export default function PdfViewer({ pages, sources, zoom = 1, onPageInView }) {
           source={sources[pg.srcKey]}
           displayNumber={i + 1}
           width={width}
+          items={annotations[pg.id]}
           onVisible={onPageInView}
         />
       ))}

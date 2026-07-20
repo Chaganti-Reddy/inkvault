@@ -97,7 +97,7 @@ export default function Editor() {
           </div>
         </div>
 
-        {tool === 'view' && <PdfViewer pages={pages} sources={sources} zoom={zoom} onPageInView={setPageInView} />}
+        {tool === 'view' && <PdfViewer pages={pages} sources={sources} annotations={annotations} zoom={zoom} onPageInView={setPageInView} />}
         {tool === 'organize' && <OrganizePanel />}
         {tool === 'annotate' && <AnnotatePanel />}
         {tool === 'redact' && <RedactPanel />}
