@@ -33,7 +33,7 @@ Covering text with a black rectangle is not redaction — the text still sits un
 
 ## OCR
 
-`tesseract.js` recognizes text from a rasterized page image and returns words with bounding boxes. Each word becomes an invisible text annotation positioned over the scan, so the exported PDF looks identical but is now searchable and selectable. The engine is loaded lazily and only when the user runs OCR; the document image is processed in-browser and never uploaded.
+`tesseract.js` recognizes text from a rasterized page image and returns words with bounding boxes. Each word becomes an invisible text annotation positioned over the scan, so the exported PDF looks identical but is now searchable and selectable. The engine is loaded lazily and only when the user runs OCR; the document image is processed in-browser and never uploaded. The engine and language data are cached by the service worker on first use, so OCR continues to work offline afterwards.
 
 ## Password protection
 

@@ -27,6 +27,19 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,mjs,wasm}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
+        // Cache the OCR engine (worker, core wasm, language data) the first time it
+        // loads from its CDN, so OCR keeps working offline afterwards.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => /(?:unpkg\.com|cdn\.jsdelivr\.net|tessdata\.projectnaptha\.com)/.test(url.href),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'ocr-engine',
+              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 90 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

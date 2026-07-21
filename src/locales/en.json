@@ -122,7 +122,7 @@
     "run": "Run OCR on {{n}} pages",
     "running": "Reading page {{page}} of {{total}}… {{pct}}%",
     "done": "Searchable text added to {{n}} pages. Download to keep it.",
-    "note": "Your document stays on your device. The OCR engine downloads once on first use."
+    "note": "Your document stays on your device. The OCR engine downloads once on first use, then is cached so OCR keeps working offline."
   },
   "forms": {
     "hint": "Fill the fields below, then Download. Values are baked in and the form is flattened.",

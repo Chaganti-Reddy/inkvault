@@ -83,7 +83,7 @@ It is a static site, so any static host works. The included `netlify.toml` and `
 
 ## Privacy
 
-There is no analytics, no telemetry, and no network call that includes your file. The only outbound requests the app can make are for the OCR engine assets (tesseract.js) the first time you use OCR, and those are public, document-independent static files. Everything else — parsing, editing, rendering, encryption — happens in your browser.
+There is no analytics, no telemetry, and no network call that includes your file. The only outbound requests the app can make are for the OCR engine assets (tesseract.js) the first time you use OCR, and those are public, document-independent static files that are then cached for offline use. Everything else — parsing, editing, rendering, encryption — happens in your browser, and the whole app is precached to run offline.
 
 ## License
 
