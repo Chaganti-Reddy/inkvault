@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadDocument, readFileBytes, isPdf } from '../lib/pdfview.js';
 import { imagesToPdf, isImage } from '../lib/images.js';
@@ -28,17 +28,22 @@ export function PdfProvider({ children }) {
   const [annotations, setAnnotations] = useState({}); // pageId -> [{ id, type, ... normalized coords }]
   const [formValues, setFormValues] = useState({}); // srcKey -> { fieldName: value }
 
-  // Undo/redo: a ref mirrors the current editable state so history snapshots capture
-  // the latest values without stale closures, and past/future drive the UI.
+  // Undo/redo. A ref mirrors the current editable state so snapshots capture the
+  // latest values without stale closures. History lives in refs (no setState inside
+  // setState — Strict-Mode safe); `histVer` bumps to re-render Undo/Redo buttons.
   const stateRef = useRef({ pages: [], annotations: {}, formValues: {} });
   useEffect(() => { stateRef.current = { pages, annotations, formValues }; }, [pages, annotations, formValues]);
-  const [past, setPast] = useState([]);
-  const [future, setFuture] = useState([]);
+  const pastRef = useRef([]);
+  const futureRef = useRef([]);
+  const [histVer, setHistVer] = useState(0);
+  const bumpHist = useCallback(() => setHistVer((v) => v + 1), []);
+
   const pushHistory = useCallback(() => {
-    setPast((p) => [...p.slice(-49), stateRef.current]);
-    setFuture([]);
-  }, []);
-  const clearHistory = useCallback(() => { setPast([]); setFuture([]); }, []);
+    pastRef.current = [...pastRef.current.slice(-49), stateRef.current];
+    futureRef.current = [];
+    bumpHist();
+  }, [bumpHist]);
+  const clearHistory = useCallback(() => { pastRef.current = []; futureRef.current = []; bumpHist(); }, [bumpHist]);
 
   const restore = useCallback((snap) => {
     setPages(snap.pages); setAnnotations(snap.annotations); setFormValues(snap.formValues);
@@ -46,25 +51,25 @@ export function PdfProvider({ children }) {
     setDirty(true);
   }, []);
   const undo = useCallback(() => {
-    setPast((p) => {
-      if (!p.length) return p;
-      setFuture((f) => [stateRef.current, ...f].slice(0, 50));
-      restore(p[p.length - 1]);
-      return p.slice(0, -1);
-    });
-  }, [restore]);
+    if (!pastRef.current.length) return;
+    const prev = pastRef.current[pastRef.current.length - 1];
+    futureRef.current = [stateRef.current, ...futureRef.current].slice(0, 50);
+    pastRef.current = pastRef.current.slice(0, -1);
+    restore(prev);
+    bumpHist();
+  }, [restore, bumpHist]);
   const redo = useCallback(() => {
-    setFuture((f) => {
-      if (!f.length) return f;
-      setPast((p) => [...p.slice(-49), stateRef.current]);
-      restore(f[0]);
-      return f.slice(1);
-    });
-  }, [restore]);
+    if (!futureRef.current.length) return;
+    const next = futureRef.current[0];
+    pastRef.current = [...pastRef.current.slice(-49), stateRef.current];
+    futureRef.current = futureRef.current.slice(1);
+    restore(next);
+    bumpHist();
+  }, [restore, bumpHist]);
 
   const reset = useCallback(() => {
     setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false); setAnnotations({}); setFormValues({}); setLocked(null);
-    setPast([]); setFuture([]);
+    pastRef.current = []; futureRef.current = []; setHistVer((v) => v + 1);
   }, []);
 
   const setFormValue = useCallback((srcKey, name, value) => {
@@ -238,6 +243,11 @@ export function PdfProvider({ children }) {
     setDirty(true);
   }, []);
 
+  // histVer is read so it counts as a real dependency — it's what makes these
+  // recompute after each history change (the actual data lives in refs).
+  const canUndo = useMemo(() => histVer >= 0 && pastRef.current.length > 0, [histVer]);
+  const canRedo = useMemo(() => histVer >= 0 && futureRef.current.length > 0, [histVer]);
+
   const close = useCallback(() => { reset(); navigate('/'); }, [reset, navigate]);
 
   const value = {
@@ -246,7 +256,7 @@ export function PdfProvider({ children }) {
     openFile, openBytes, mergeFile, importImages, rotatePages, deletePages, duplicatePages, reorderPages, close,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps,
     formValues, setFormValue,
-    undo, redo, canUndo: past.length > 0, canRedo: future.length > 0,
+    undo, redo, canUndo, canRedo,
     numPages: pages.length,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
