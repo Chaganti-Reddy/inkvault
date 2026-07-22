@@ -1,4 +1,4 @@
-.app { display: flex; flex-direction: column; min-height: 100%; }
+.app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* ---------- buttons ---------- */
 .btn {
@@ -28,7 +28,7 @@
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 22px; background: var(--surface); border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; z-index: 20;
+  flex: 0 0 auto; z-index: 20;
 }
 .brand { display: flex; align-items: center; gap: 9px; }
 .brand-name { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; }
@@ -45,7 +45,8 @@
 }
 
 /* ---------- home ---------- */
-.home { max-width: 1000px; margin: 0 auto; padding: 56px 24px 80px; width: 100%; }
+.home { flex: 1; min-height: 0; overflow-y: auto; padding: 56px 24px 80px; }
+.home > * { max-width: 1000px; margin-left: auto; margin-right: auto; }
 .hero { text-align: center; }
 .hero h1 { font-size: clamp(28px, 5vw, 44px); letter-spacing: -0.03em; margin: 0 0 12px; }
 .hero-sub { color: var(--muted); font-size: 17px; max-width: 620px; margin: 0 auto 32px; line-height: 1.5; }
@@ -88,10 +89,11 @@
 .feature-sub { color: var(--muted); font-size: 13.5px; margin-top: 4px; line-height: 1.45; }
 
 /* ---------- editor shell + tool rail ---------- */
-.editor-shell { display: flex; flex: 1; min-height: 0; }
+.editor-shell { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .tool-rail {
   display: flex; flex-direction: column; gap: 4px; padding: 12px 8px;
   background: var(--surface); border-right: 1px solid var(--border); width: 84px; flex: 0 0 84px;
+  overflow-y: auto;
 }
 .tool-btn {
   display: flex; flex-direction: column; align-items: center; gap: 5px;
@@ -104,7 +106,7 @@
 .tool-btn.on { background: var(--accent-weak); color: var(--accent); }
 
 /* ---------- editor ---------- */
-.editor { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.editor { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
 .toolbar {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
@@ -120,7 +122,7 @@
   padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;
 }
 .pdf-page {
-  position: relative;
+  position: relative; flex: 0 0 auto;
   background: var(--surface); box-shadow: var(--shadow); border-radius: 4px; overflow: hidden;
   min-height: 120px;
 }
@@ -197,7 +199,7 @@
 .anno-bar .spacer { flex: 1; }
 
 .anno-scroll { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px; background: var(--bg); }
-.anno-page-wrap { position: relative; }
+.anno-page-wrap { position: relative; flex: 0 0 auto; }
 .anno-page { position: relative; background: #fff; box-shadow: var(--shadow); border-radius: 4px; }
 .anno-surface { position: absolute; inset: 0; touch-action: none; }
 .anno-surface.tool-text { cursor: text; }
