@@ -18,7 +18,7 @@ export default function RedactPanel() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const measure = () => setBaseWidth(Math.min(820, el.clientWidth - 48));
+    const measure = () => setBaseWidth(Math.min(1100, el.clientWidth - 48));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);

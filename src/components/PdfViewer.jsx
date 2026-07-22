@@ -47,7 +47,9 @@ export default function PdfViewer({ pages, sources, annotations = {}, zoom = 1, 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const measure = () => setBaseWidth(Math.min(900, el.clientWidth - 48));
+    // Fit to the available width (100% zoom = page fills the column), capped so it
+    // doesn't get unreadably wide on very large monitors.
+    const measure = () => setBaseWidth(Math.min(1400, el.clientWidth - 40));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
