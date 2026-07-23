@@ -47,6 +47,11 @@ export async function imagesToPdf(files) {
   return doc.save();
 }
 
+// Any image the browser can decode. JPEG/PNG embed directly; the rest go through a
+// canvas, so anything <img> can render (webp, gif, bmp, avif, …) becomes a page.
 export function isImage(file) {
-  return file && (/^image\//.test(file.type) || /\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name));
+  return file && (/^image\//.test(file.type) || /\.(jpe?g|jfif|png|webp|gif|bmp|avif|tiff?|hei[cf])$/i.test(file.name));
 }
+
+// accept attribute for the image file picker — filters the OS dialog to images.
+export const IMAGE_ACCEPT = 'image/*,.jpg,.jpeg,.jfif,.png,.webp,.gif,.bmp,.avif,.tif,.tiff,.heic,.heif';

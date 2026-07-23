@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
+import { IMAGE_ACCEPT } from '../lib/images.js';
 import {
   FiUpload, FiLayers, FiEdit3, FiEyeOff, FiSearch, FiType, FiLock, LuShieldCheck,
 } from '../ui/icons.js';
@@ -68,22 +69,25 @@ export default function Home() {
               </div>
             </>
           )}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="application/pdf,.pdf"
-            hidden
-            onChange={(e) => e.target.files?.[0] && openFile(e.target.files[0])}
-          />
-          <input
-            ref={imgRef}
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={(e) => e.target.files?.length && importImages(e.target.files)}
-          />
         </div>
+
+        {/* Inputs live OUTSIDE the dropzone: a programmatic .click() dispatches a click
+            that would otherwise bubble to the dropzone's onClick and open the wrong picker. */}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="application/pdf,.pdf"
+          hidden
+          onChange={(e) => e.target.files?.[0] && openFile(e.target.files[0])}
+        />
+        <input
+          ref={imgRef}
+          type="file"
+          accept={IMAGE_ACCEPT}
+          multiple
+          hidden
+          onChange={(e) => e.target.files?.length && importImages(e.target.files)}
+        />
 
         {error && <div className="error">{error}</div>}
 
