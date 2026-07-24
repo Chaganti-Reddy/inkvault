@@ -137,7 +137,11 @@
     "text": "Add text",
     "highlight": "Highlight",
     "pen": "Draw",
+    "line": "Line",
+    "arrow": "Arrow",
     "rect": "Rectangle",
+    "ellipse": "Ellipse",
+    "whiteout": "Whiteout (cover)",
     "signature": "Signature",
     "color": "Custom color",
     "deleteSel": "Delete"

@@ -36,5 +36,8 @@ export {
   FiHash,
   FiCornerUpLeft,
   FiCornerUpRight,
+  FiCircle,
+  FiMinus,
+  FiArrowUpRight,
 } from 'react-icons/fi';
-export { LuShieldCheck } from 'react-icons/lu';
+export { LuShieldCheck, LuEraser } from 'react-icons/lu';

@@ -83,6 +83,24 @@ async function drawAnnotations(out, pageObj, items, R, font) {
     } else if (a.type === 'rect') {
       const r = rectFromDisplay(a.x, a.y, a.w, a.h);
       pageObj.drawRectangle({ x: r.x, y: r.y, width: r.w, height: r.h, borderColor: hexRgb(a.color), borderWidth: Math.max(0.5, a.strokeW * Dh), opacity: 0 });
+    } else if (a.type === 'whiteout') {
+      const r = rectFromDisplay(a.x, a.y, a.w, a.h);
+      pageObj.drawRectangle({ x: r.x, y: r.y, width: r.w, height: r.h, color: rgb(1, 1, 1) });
+    } else if (a.type === 'ellipse') {
+      const r = rectFromDisplay(a.x, a.y, a.w, a.h);
+      pageObj.drawEllipse({ x: r.x + r.w / 2, y: r.y + r.h / 2, xScale: r.w / 2, yScale: r.h / 2, borderColor: hexRgb(a.color), borderWidth: Math.max(0.5, a.strokeW * Dh), opacity: 0 });
+    } else if (a.type === 'line' || a.type === 'arrow') {
+      const thickness = Math.max(0.5, a.strokeW * Dh);
+      const p1 = mapPoint(a.x0 * Dw, a.y0 * Dh, Pw, Ph, R);
+      const p2 = mapPoint(a.x1 * Dw, a.y1 * Dh, Pw, Ph, R);
+      pageObj.drawLine({ start: { x: p1.ux, y: p1.uy }, end: { x: p2.ux, y: p2.uy }, thickness, color: hexRgb(a.color), lineCap: 1 });
+      if (a.type === 'arrow') {
+        const ang = Math.atan2(p2.uy - p1.uy, p2.ux - p1.ux);
+        const head = Math.max(6, thickness * 3);
+        for (const s of [ang + Math.PI * 0.82, ang - Math.PI * 0.82]) {
+          pageObj.drawLine({ start: { x: p2.ux, y: p2.uy }, end: { x: p2.ux + head * Math.cos(s), y: p2.uy + head * Math.sin(s) }, thickness, color: hexRgb(a.color), lineCap: 1 });
+        }
+      }
     } else if (a.type === 'draw') {
       const thickness = Math.max(0.5, a.strokeW * Dh);
       for (let i = 1; i < a.points.length; i++) {

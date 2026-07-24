@@ -3,14 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
 import AnnotateLayer from './AnnotateLayer.jsx';
 import SignatureModal from './SignatureModal.jsx';
-import { FiMousePointer, FiType, FiEdit2, FiEdit3, FiSquare, FiPenTool, FiTrash2 } from '../ui/icons.js';
+import { FiMousePointer, FiType, FiEdit2, FiEdit3, FiSquare, FiCircle, FiMinus, FiArrowUpRight, FiPenTool, FiTrash2, LuEraser } from '../ui/icons.js';
 
 const TOOLS = [
   { key: 'select', Icon: FiMousePointer },
   { key: 'text', Icon: FiType },
   { key: 'highlight', Icon: FiEdit2 },
   { key: 'pen', Icon: FiEdit3 },
+  { key: 'line', Icon: FiMinus },
+  { key: 'arrow', Icon: FiArrowUpRight },
   { key: 'rect', Icon: FiSquare },
+  { key: 'ellipse', Icon: FiCircle },
+  { key: 'whiteout', Icon: LuEraser },
 ];
 const COLORS = ['#111111', '#e5484d', '#2f6feb', '#2f9e6d'];
 const STROKES = [0.003, 0.005, 0.009];

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { renderPage } from '../lib/pdfview.js';
 
+const LINE_TOOLS = ['line', 'arrow'];
+
 // Renders one page plus an interactive overlay. Annotations are stored in
 // normalized 0..1 coordinates (top-left origin) relative to the displayed page,
 // so they survive zoom and map cleanly onto the exported PDF.
@@ -46,7 +48,7 @@ export default function AnnotateLayer({
       return;
     }
     if (tool === 'pen') { setDraft({ type: 'draw', points: [p], color, strokeW }); return; }
-    if (tool === 'highlight' || tool === 'rect' || tool === 'redact') { setDraft({ type: tool, x0: p.x, y0: p.y, x: p.x, y: p.y }); return; }
+    setDraft({ type: tool, x0: p.x, y0: p.y, x: p.x, y: p.y });
   };
 
   const onSurfaceMove = (e) => {
@@ -60,12 +62,17 @@ export default function AnnotateLayer({
     if (!draft) return;
     if (draft.type === 'draw') {
       if (draft.points.length > 1) onAdd({ type: 'draw', points: draft.points, color, strokeW });
+    } else if (LINE_TOOLS.includes(draft.type)) {
+      const dist = Math.hypot(draft.x - draft.x0, draft.y - draft.y0);
+      if (dist > 0.01) onAdd({ type: draft.type, x0: draft.x0, y0: draft.y0, x1: draft.x, y1: draft.y, color, strokeW });
     } else {
       const x = Math.min(draft.x0, draft.x), y = Math.min(draft.y0, draft.y);
       const w = Math.abs(draft.x - draft.x0), h = Math.abs(draft.y - draft.y0);
       if (w > 0.005 && h > 0.005) {
         if (draft.type === 'highlight') onAdd({ type: 'highlight', x, y, w, h, color: '#ffd54a' });
         else if (draft.type === 'redact') onAdd({ type: 'redact', x, y, w, h });
+        else if (draft.type === 'whiteout') onAdd({ type: 'whiteout', x, y, w, h });
+        else if (draft.type === 'ellipse') onAdd({ type: 'ellipse', x, y, w, h, color, strokeW });
         else onAdd({ type: 'rect', x, y, w, h, color, strokeW });
       }
     }
@@ -122,6 +129,29 @@ export default function AnnotateLayer({
               className={selectedId === a.id ? 'sel' : ''}
               onPointerDown={(e) => startMove(e, a)} />
           ))}
+          {items.filter((a) => a.type === 'whiteout').map((a) => (
+            <rect key={a.id} x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)}
+              fill="#fff" fillOpacity="1" stroke={selectedId === a.id ? 'var(--accent)' : '#e2e5ea'} strokeWidth="1"
+              className={selectedId === a.id ? 'sel' : ''}
+              onPointerDown={(e) => startMove(e, a)} />
+          ))}
+          {items.filter((a) => a.type === 'ellipse').map((a) => (
+            <ellipse key={a.id} cx={px(a.x + a.w / 2)} cy={py(a.y + a.h / 2)} rx={px(a.w / 2)} ry={py(a.h / 2)}
+              fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)}
+              className={selectedId === a.id ? 'sel' : ''}
+              onPointerDown={(e) => startMove(e, a)} />
+          ))}
+          {items.filter((a) => a.type === 'line' || a.type === 'arrow').map((a) => (
+            <line key={a.id} x1={px(a.x0)} y1={py(a.y0)} x2={px(a.x1)} y2={py(a.y1)}
+              stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round"
+              markerEnd={a.type === 'arrow' ? 'url(#iv-arrow)' : undefined}
+              onPointerDown={(e) => startMove(e, a)} />
+          ))}
+          <defs>
+            <marker id="iv-arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill={color} />
+            </marker>
+          </defs>
           {items.filter((a) => a.type === 'draw').map((a) => (
             <polyline key={a.id} points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')}
               fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" strokeLinejoin="round" />
@@ -130,12 +160,22 @@ export default function AnnotateLayer({
             <polyline points={draft.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')}
               fill="none" stroke={color} strokeWidth={strokePx(strokeW)} strokeLinecap="round" />
           )}
-          {(draft?.type === 'highlight' || draft?.type === 'rect' || draft?.type === 'redact') && (
+          {(draft?.type === 'highlight' || draft?.type === 'rect' || draft?.type === 'redact' || draft?.type === 'whiteout') && (
             <rect x={px(Math.min(draft.x0, draft.x))} y={py(Math.min(draft.y0, draft.y))}
               width={px(Math.abs(draft.x - draft.x0))} height={py(Math.abs(draft.y - draft.y0))}
-              fill={draft.type === 'highlight' ? '#ffd54a' : draft.type === 'redact' ? '#000' : 'none'}
-              fillOpacity={draft.type === 'rect' ? 0 : draft.type === 'redact' ? 1 : 0.4}
+              fill={draft.type === 'highlight' ? '#ffd54a' : draft.type === 'redact' ? '#000' : draft.type === 'whiteout' ? '#fff' : 'none'}
+              fillOpacity={draft.type === 'rect' ? 0 : draft.type === 'highlight' ? 0.4 : 1}
               stroke={draft.type === 'rect' ? color : 'none'} strokeWidth={strokePx(strokeW)} />
+          )}
+          {draft?.type === 'ellipse' && (
+            <ellipse cx={px((draft.x0 + draft.x) / 2)} cy={py((draft.y0 + draft.y) / 2)}
+              rx={px(Math.abs(draft.x - draft.x0) / 2)} ry={py(Math.abs(draft.y - draft.y0) / 2)}
+              fill="none" stroke={color} strokeWidth={strokePx(strokeW)} />
+          )}
+          {(draft?.type === 'line' || draft?.type === 'arrow') && (
+            <line x1={px(draft.x0)} y1={py(draft.y0)} x2={px(draft.x)} y2={py(draft.y)}
+              stroke={color} strokeWidth={strokePx(strokeW)} strokeLinecap="round"
+              markerEnd={draft.type === 'arrow' ? 'url(#iv-arrow)' : undefined} />
           )}
         </svg>
 

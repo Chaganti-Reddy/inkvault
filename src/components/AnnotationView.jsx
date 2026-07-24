@@ -15,6 +15,20 @@ export default function AnnotationView({ items, w, h }) {
         {items.filter((a) => a.type === 'redact').map((a) => (
           <rect key={a.id} x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)} fill="#000" />
         ))}
+        {items.filter((a) => a.type === 'whiteout').map((a) => (
+          <rect key={a.id} x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)} fill="#fff" />
+        ))}
+        {items.filter((a) => a.type === 'ellipse').map((a) => (
+          <ellipse key={a.id} cx={px(a.x + a.w / 2)} cy={py(a.y + a.h / 2)} rx={px(a.w / 2)} ry={py(a.h / 2)} fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} />
+        ))}
+        {items.filter((a) => a.type === 'line' || a.type === 'arrow').map((a) => (
+          <line key={a.id} x1={px(a.x0)} y1={py(a.y0)} x2={px(a.x1)} y2={py(a.y1)} stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" markerEnd={a.type === 'arrow' ? 'url(#iv-arrow-v)' : undefined} />
+        ))}
+        <defs>
+          <marker id="iv-arrow-v" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#e5484d" />
+          </marker>
+        </defs>
         {items.filter((a) => a.type === 'rect').map((a) => (
           <rect key={a.id} x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)} fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} />
         ))}
