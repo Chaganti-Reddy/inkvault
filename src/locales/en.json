@@ -165,7 +165,11 @@
     "duplicate": "Duplicate",
     "delete": "Delete",
     "merge": "Add PDF",
-    "extract": "Export selected"
+    "extract": "Export selected",
+    "reverse": "Reverse",
+    "blank": "Blank page",
+    "split": "Export range",
+    "rangePlaceholder": "e.g. 1-3, 5"
   },
   "common": {
     "close": "Close",

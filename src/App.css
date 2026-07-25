@@ -143,6 +143,8 @@
 .organize-bar .spacer { flex: 1; }
 .organize-bar .btn.sm { padding: 7px 11px; font-size: 13px; }
 .organize-bar .btn.sm:disabled { opacity: 0.45; cursor: default; }
+.split-box { display: inline-flex; align-items: center; gap: 6px; }
+.range-input { width: 96px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 13px; }
 
 .thumb-grid {
   flex: 1; overflow: auto; padding: 20px;

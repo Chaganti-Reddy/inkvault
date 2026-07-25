@@ -3,11 +3,25 @@ import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
 import PageThumb from './PageThumb.jsx';
 import { extractPdf, downloadBytes } from '../lib/pdfops.js';
-import { FiRotateCw, FiTrash2, FiLayers, FiDownload, FiCopy, FiCheckSquare } from '../ui/icons.js';
+import { FiRotateCw, FiTrash2, FiLayers, FiDownload, FiCopy, FiCheckSquare, FiFilePlus, FiRepeat } from '../ui/icons.js';
+
+// Parse "1-3,5,8" into zero-based page indices.
+function parseRanges(str, total) {
+  const out = new Set();
+  for (const part of str.split(',')) {
+    const m = part.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+    if (!m) continue;
+    const a = Math.max(1, parseInt(m[1], 10));
+    const b = m[2] ? parseInt(m[2], 10) : a;
+    for (let i = Math.min(a, b); i <= Math.max(a, b); i++) if (i >= 1 && i <= total) out.add(i - 1);
+  }
+  return [...out];
+}
 
 export default function OrganizePanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, fileName, rotatePages, deletePages, duplicatePages, reorderPages, mergeFile } = usePdf();
+  const { pages, sources, annotations, formValues, fileName, rotatePages, deletePages, duplicatePages, reorderPages, mergeFile, insertBlankPage } = usePdf();
+  const [rangeStr, setRangeStr] = useState('');
   const [selected, setSelected] = useState(() => new Set());
   const [lastId, setLastId] = useState(null);
   const [dragIds, setDragIds] = useState(null);
@@ -62,6 +76,16 @@ export default function OrganizePanel() {
     downloadBytes(bytes, fileName.replace(/\.pdf$/i, '') + '-extract.pdf');
   };
 
+  const doSplit = async () => {
+    const idx = parseRanges(rangeStr, pages.length);
+    if (!idx.length) return;
+    const rangeIds = idx.map((i) => pages[i].id);
+    const bytes = await extractPdf(pages, sources, rangeIds, annotations, formValues);
+    downloadBytes(bytes, fileName.replace(/\.pdf$/i, '') + `-pages-${rangeStr.replace(/[^0-9,-]/g, '')}.pdf`);
+  };
+
+  const reverse = () => reorderPages([...ids].reverse());
+
   const selCount = selected.size;
   const scopeLabel = selCount ? t('organize.selected', { n: selCount }) : t('organize.allPages', { n: ids.length });
 
@@ -74,8 +98,14 @@ export default function OrganizePanel() {
         <button className="btn sm" onClick={() => rotatePages(targetIds())}><FiRotateCw /> {t('organize.rotate')}</button>
         <button className="btn sm" onClick={() => duplicatePages(targetIds())}><FiCopy /> {t('organize.duplicate')}</button>
         <button className="btn sm" disabled={!selCount} onClick={() => { deletePages([...selected]); setSelected(new Set()); }}><FiTrash2 /> {t('organize.delete')}</button>
+        <button className="btn sm" onClick={reverse}><FiRepeat /> {t('organize.reverse')}</button>
+        <button className="btn sm" onClick={insertBlankPage}><FiFilePlus /> {t('organize.blank')}</button>
         <button className="btn sm" onClick={() => mergeRef.current?.click()}><FiLayers /> {t('organize.merge')}</button>
         <button className="btn sm" onClick={doExtract}><FiDownload /> {t('organize.extract')}</button>
+        <span className="split-box">
+          <input className="range-input" value={rangeStr} onChange={(e) => setRangeStr(e.target.value)} placeholder={t('organize.rangePlaceholder')} />
+          <button className="btn sm" disabled={!rangeStr.trim()} onClick={doSplit}>{t('organize.split')}</button>
+        </span>
         <input ref={mergeRef} type="file" accept="application/pdf,.pdf" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) mergeFile(f); e.target.value = ''; }} />
       </div>
 

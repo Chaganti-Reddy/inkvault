@@ -39,5 +39,7 @@ export {
   FiCircle,
   FiMinus,
   FiArrowUpRight,
+  FiFilePlus,
+  FiRepeat,
 } from 'react-icons/fi';
 export { LuShieldCheck, LuEraser } from 'react-icons/lu';

@@ -219,6 +219,13 @@ export async function extractText(pages, sources, annotations, formValues) {
   return parts.join('\n\n');
 }
 
+// A one-page blank PDF (default A4), used to insert blank pages into the model.
+export async function blankPdfBytes(width = 595, height = 842) {
+  const doc = await PDFDocument.create();
+  doc.addPage([width, height]);
+  return doc.save();
+}
+
 export function downloadText(text, name) {
   const blob = new Blob([text], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);

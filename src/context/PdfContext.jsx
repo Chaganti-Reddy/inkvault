@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { loadDocument, readFileBytes, isPdf } from '../lib/pdfview.js';
 import { imagesToPdf, isImage } from '../lib/images.js';
 import { decryptBytes } from '../lib/protect.js';
+import { blankPdfBytes } from '../lib/pdfops.js';
 import i18n from '../i18n.js';
 
 const Ctx = createContext(null);
@@ -161,6 +162,18 @@ export function PdfProvider({ children }) {
     setDirty(true);
   }, [pushHistory]);
 
+  // Append a blank A4 page (its own tiny source). User can drag it into place.
+  const insertBlankPage = useCallback(async () => {
+    const bytes = await blankPdfBytes();
+    const canonical = new Uint8Array(bytes);
+    const doc = await loadDocument(canonical.slice());
+    const key = `blank${Date.now()}`;
+    pushHistory();
+    setSources((s) => ({ ...s, [key]: { bytes: canonical, doc, name: 'blank' } }));
+    setPages((p) => [...p, { id: nextId(), srcKey: key, index: 0, rotation: 0 }]);
+    setDirty(true);
+  }, [pushHistory]);
+
   const rotatePages = useCallback((ids, delta = 90) => {
     const set = new Set(ids);
     pushHistory();
@@ -253,7 +266,7 @@ export function PdfProvider({ children }) {
   const value = {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
     locked, unlocking, unlockWithPassword, cancelUnlock,
-    openFile, openBytes, mergeFile, importImages, rotatePages, deletePages, duplicatePages, reorderPages, close,
+    openFile, openBytes, mergeFile, importImages, insertBlankPage, rotatePages, deletePages, duplicatePages, reorderPages, close,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps,
     formValues, setFormValue,
     undo, redo, canUndo, canRedo,
