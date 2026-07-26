@@ -146,8 +146,18 @@ function dataUrlToBytes(dataUrl) {
   return arr;
 }
 
-async function buildFrom(items, sources, annotations = {}, formValues = {}) {
+function applyMetadata(out, meta = {}) {
+  out.setProducer('InkVault');
+  out.setCreator('InkVault (inkvaultpdf.pages.dev)');
+  if (meta.title != null) out.setTitle(meta.title);
+  if (meta.author != null) out.setAuthor(meta.author);
+  if (meta.subject != null) out.setSubject(meta.subject);
+  if (meta.keywords) out.setKeywords(meta.keywords.split(',').map((k) => k.trim()).filter(Boolean));
+}
+
+async function buildFrom(items, sources, annotations = {}, formValues = {}, metadata = {}) {
   const out = await PDFDocument.create();
+  applyMetadata(out, metadata);
   const font = await out.embedFont(StandardFonts.Helvetica);
   const load = sourceLoader(sources, formValues);
   for (const item of items) {
@@ -181,13 +191,13 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}) {
   return out.save();
 }
 
-export function buildPdf(pages, sources, annotations, formValues) {
-  return buildFrom(pages, sources, annotations, formValues);
+export function buildPdf(pages, sources, annotations, formValues, metadata) {
+  return buildFrom(pages, sources, annotations, formValues, metadata);
 }
 
-export function extractPdf(pages, sources, ids, annotations, formValues) {
+export function extractPdf(pages, sources, ids, annotations, formValues, metadata) {
   const set = new Set(ids);
-  return buildFrom(pages.filter((p) => set.has(p.id)), sources, annotations, formValues);
+  return buildFrom(pages.filter((p) => set.has(p.id)), sources, annotations, formValues, metadata);
 }
 
 // Shrink a PDF by rendering every page to a JPEG at the given DPI/quality and

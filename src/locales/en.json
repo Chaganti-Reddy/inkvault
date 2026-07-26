@@ -67,7 +67,18 @@
     "stamp": "Stamp",
     "ocr": "OCR",
     "compress": "Compress",
-    "protect": "Protect"
+    "protect": "Protect",
+    "info": "Details"
+  },
+  "info": {
+    "title": "Document properties",
+    "sub": "Set the title, author and keywords stored inside the PDF.",
+    "docTitle": "Title",
+    "author": "Author",
+    "subject": "Subject",
+    "keywords": "Keywords",
+    "keywordsHint": "comma, separated, words",
+    "note": "Saved into the file's metadata when you download."
   },
   "protect": {
     "title": "Password-protect this PDF",

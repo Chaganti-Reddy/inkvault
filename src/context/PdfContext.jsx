@@ -28,6 +28,8 @@ export function PdfProvider({ children }) {
   const [unlocking, setUnlocking] = useState(false);
   const [annotations, setAnnotations] = useState({}); // pageId -> [{ id, type, ... normalized coords }]
   const [formValues, setFormValues] = useState({}); // srcKey -> { fieldName: value }
+  const [metadata, setMetadataState] = useState({ title: '', author: '', subject: '', keywords: '' });
+  const setMetadata = useCallback((patch) => { setMetadataState((m) => ({ ...m, ...patch })); setDirty(true); }, []);
 
   // Undo/redo. A ref mirrors the current editable state so snapshots capture the
   // latest values without stale closures. History lives in refs (no setState inside
@@ -70,6 +72,7 @@ export function PdfProvider({ children }) {
 
   const reset = useCallback(() => {
     setSources({}); setPages([]); setFileName(''); setError(''); setDirty(false); setAnnotations({}); setFormValues({}); setLocked(null);
+    setMetadataState({ title: '', author: '', subject: '', keywords: '' });
     pastRef.current = []; futureRef.current = []; setHistVer((v) => v + 1);
   }, []);
 
@@ -93,6 +96,11 @@ export function PdfProvider({ children }) {
       }
       const key = 's0';
       const items = Array.from({ length: doc.numPages }, (_, i) => ({ id: nextId(), srcKey: key, index: i, rotation: 0 }));
+      // Prefill the document-properties editor from any existing metadata.
+      try {
+        const info = (await doc.getMetadata())?.info || {};
+        setMetadataState({ title: info.Title || '', author: info.Author || '', subject: info.Subject || '', keywords: info.Keywords || '' });
+      } catch { setMetadataState({ title: '', author: '', subject: '', keywords: '' }); }
       setSources({ [key]: { bytes: canonical, doc, name: name || 'document.pdf' } });
       setPages(items);
       setFileName(name || 'document.pdf');
@@ -268,7 +276,7 @@ export function PdfProvider({ children }) {
     locked, unlocking, unlockWithPassword, cancelUnlock,
     openFile, openBytes, mergeFile, importImages, insertBlankPage, rotatePages, deletePages, duplicatePages, reorderPages, close,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps,
-    formValues, setFormValue,
+    formValues, setFormValue, metadata, setMetadata,
     undo, redo, canUndo, canRedo,
     numPages: pages.length,
   };

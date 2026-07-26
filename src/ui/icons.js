@@ -41,5 +41,6 @@ export {
   FiArrowUpRight,
   FiFilePlus,
   FiRepeat,
+  FiInfo,
 } from 'react-icons/fi';
 export { LuShieldCheck, LuEraser } from 'react-icons/lu';

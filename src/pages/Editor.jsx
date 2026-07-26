@@ -11,13 +11,14 @@ import OcrPanel from '../components/OcrPanel.jsx';
 import CompressPanel from '../components/CompressPanel.jsx';
 import ProtectPanel from '../components/ProtectPanel.jsx';
 import StampPanel from '../components/StampPanel.jsx';
+import InfoPanel from '../components/InfoPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfops.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo } = usePdf();
+  const { pages, sources, annotations, formValues, metadata, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo } = usePdf();
   const [tool, setTool] = useState('view');
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
@@ -50,7 +51,7 @@ export default function Editor() {
   const download = async () => {
     setSaving(true);
     try {
-      const bytes = await buildPdf(pages, sources, annotations, formValues);
+      const bytes = await buildPdf(pages, sources, annotations, formValues, metadata);
       downloadBytes(bytes, fileName || 'document.pdf');
     } finally {
       setSaving(false);
@@ -106,6 +107,7 @@ export default function Editor() {
         {tool === 'ocr' && <OcrPanel />}
         {tool === 'compress' && <CompressPanel />}
         {tool === 'protect' && <ProtectPanel />}
+        {tool === 'info' && <InfoPanel />}
         {loading && <div className="editor-loading">{t('viewer.loading')}</div>}
       </main>
     </div>
