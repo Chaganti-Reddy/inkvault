@@ -13,19 +13,23 @@ import ProtectPanel from '../components/ProtectPanel.jsx';
 import StampPanel from '../components/StampPanel.jsx';
 import InfoPanel from '../components/InfoPanel.jsx';
 import CropPanel from '../components/CropPanel.jsx';
+import ExportPanel from '../components/ExportPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfops.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, metadata, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo } = usePdf();
-  const [tool, setTool] = useState('view');
+  const { pages, sources, annotations, formValues, metadata, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo, pendingTool, setPendingTool } = usePdf();
+  const [tool, setTool] = useState(pendingTool || 'view');
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const downloadRef = useRef(null);
+
+  // Consume the "open in this tool" hint set by the home page.
+  useEffect(() => { if (pendingTool) setPendingTool(null); }, [pendingTool, setPendingTool]);
 
   // Warn before leaving with unsaved edits (edits live only in memory, by design).
   useEffect(() => {
@@ -112,6 +116,7 @@ export default function Editor() {
         {tool === 'ocr' && <OcrPanel />}
         {tool === 'compress' && <CompressPanel />}
         {tool === 'protect' && <ProtectPanel />}
+        {tool === 'export' && <ExportPanel />}
         {tool === 'info' && <InfoPanel />}
         {loading && <div className="editor-loading">{t('viewer.loading')}</div>}
       </main>

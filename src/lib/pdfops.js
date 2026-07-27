@@ -258,6 +258,31 @@ export async function blankPdfBytes(width = 595, height = 842) {
   return doc.save();
 }
 
+// Render every page of the edited document to an image blob. format: 'jpeg' | 'png'.
+export async function renderPagesToImages(pages, sources, annotations, formValues, metadata, { format = 'jpeg', dpi = 150 } = {}) {
+  const base = await buildFrom(pages, sources, annotations, formValues, metadata);
+  const doc = await loadDocument(base.slice());
+  const ext = format === 'png' ? 'png' : 'jpg';
+  const mime = format === 'png' ? 'image/png' : 'image/jpeg';
+  const out = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const { canvas } = await rasterizePage(doc, i, dpi, 0);
+    const blob = await new Promise((res) => canvas.toBlob(res, mime, 0.92));
+    out.push({ name: `page-${String(i).padStart(3, '0')}.${ext}`, data: blob });
+  }
+  return out;
+}
+
+// Split the edited document into one single-page PDF per page.
+export async function splitToSinglePages(pages, sources, annotations, formValues, metadata) {
+  const out = [];
+  for (let i = 0; i < pages.length; i++) {
+    const bytes = await buildFrom([pages[i]], sources, annotations, formValues, metadata);
+    out.push({ name: `page-${String(i + 1).padStart(3, '0')}.pdf`, data: bytes });
+  }
+  return out;
+}
+
 export function downloadText(text, name) {
   const blob = new Blob([text], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);

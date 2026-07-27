@@ -43,5 +43,7 @@ export {
   FiRepeat,
   FiInfo,
   FiCrop,
+  FiScissors,
+  FiShare2,
 } from 'react-icons/fi';
 export { LuShieldCheck, LuEraser } from 'react-icons/lu';

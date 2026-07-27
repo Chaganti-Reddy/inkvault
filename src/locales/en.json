@@ -69,7 +69,23 @@
     "ocr": "OCR",
     "compress": "Compress",
     "protect": "Protect",
+    "export": "Export",
     "info": "Details"
+  },
+  "exp": {
+    "imgTitle": "PDF to images",
+    "imgSub": "Save every page as a JPG or PNG, bundled in a zip.",
+    "format": "Format",
+    "quality": "Quality",
+    "q_screen": "Screen (96 dpi)",
+    "q_good": "Good (150 dpi)",
+    "q_print": "Print (300 dpi)",
+    "imgBtn": "Export {{n}} images",
+    "splitTitle": "Split into files",
+    "splitSub": "Save each page as its own PDF, bundled in a zip.",
+    "splitBtn": "Split into {{n}} PDFs",
+    "working": "Preparing…",
+    "note": "Downloads a .zip with one PDF per page."
   },
   "info": {
     "title": "Document properties",
