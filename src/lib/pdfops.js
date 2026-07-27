@@ -3,20 +3,24 @@
 import { PDFDocument, StandardFonts, degrees, rgb } from '@cantoo/pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { rasterizePage, loadDocument } from './pdfview.js';
-import { applyFormValues, flattenForm } from './forms.js';
+import { bakeForm } from './forms.js';
 
 const REDACT_DPI = 150;
 
 // Unicode text font (Noto Sans), fetched once and reused. Lets annotations,
 // watermarks and page numbers render non-Latin text. Falls back to Helvetica.
 let notoBytes = null;
-async function embedTextFont(out) {
+async function loadNoto() {
+  if (!notoBytes) notoBytes = new Uint8Array(await (await fetch('/fonts/NotoSans-Regular.ttf')).arrayBuffer());
+  return notoBytes;
+}
+// Embed the Unicode font into any document (output or a source being flattened).
+async function embedTextFont(doc) {
   try {
-    if (!notoBytes) notoBytes = new Uint8Array(await (await fetch('/fonts/NotoSans-Regular.ttf')).arrayBuffer());
-    out.registerFontkit(fontkit);
-    return await out.embedFont(notoBytes, { subset: true });
+    doc.registerFontkit(fontkit);
+    return await doc.embedFont(await loadNoto(), { subset: true });
   } catch {
-    return out.embedFont(StandardFonts.Helvetica);
+    return doc.embedFont(StandardFonts.Helvetica);
   }
 }
 
@@ -25,9 +29,12 @@ function sourceLoader(sources, formValues = {}) {
   return async (srcKey) => {
     if (!cache.has(srcKey)) {
       const doc = await PDFDocument.load(sources[srcKey].bytes, { ignoreEncryption: true });
-      // Fill form fields for this source, then flatten so the values are baked into
-      // the page content and survive copyPages into the output document.
-      if (applyFormValues(doc, formValues[srcKey])) flattenForm(doc);
+      // Bake any AcroForm on this source (values applied, appearances regenerated with
+      // the Unicode font, then flattened) so the result is self-contained and survives
+      // copyPages. Unconditional: a form with no edits still flattens rather than
+      // copying orphaned widgets without their AcroForm into the output.
+      const font = await embedTextFont(doc);
+      bakeForm(doc, formValues[srcKey], font);
       cache.set(srcKey, doc);
     }
     return cache.get(srcKey);
@@ -183,7 +190,42 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}, meta
   const font = await embedTextFont(out);
   const load = sourceLoader(sources, formValues);
   const usedFieldNames = new Set();
-  const uniqueName = (n) => { let name = (n || 'field').replace(/[^\w-]/g, '_'); let i = 1; while (usedFieldNames.has(name)) name = `${n}_${i++}`; usedFieldNames.add(name); return name; };
+  const uniqueName = (n) => {
+    const base = (n || 'field').replace(/[^\w-]/g, '_');
+    let name = base, i = 1;
+    while (usedFieldNames.has(name)) name = `${base}_${i++}`;
+    usedFieldNames.add(name);
+    return name;
+  };
+  // Create drawn form fields on a page. `R` is the page's final rotation; widgets
+  // are counter-rotated so their content stays upright, checkboxes are centred in
+  // the drawn box (kept square), and text fields get a readable auto-size + our font.
+  const createFields = (page, fs, Pw, Ph, R) => {
+    if (!fs.length) return;
+    const form = out.getForm();
+    const rot = degrees((360 - (R % 360)) % 360);
+    for (const f of fs) {
+      const r = toUserRect(f, Pw, Ph, R);
+      try {
+        if (f.fieldType === 'checkbox') {
+          const side = Math.max(6, Math.min(r.w, r.h));
+          const cx = r.x + (r.w - side) / 2;
+          const cy = r.y + (r.h - side) / 2;
+          form.createCheckBox(uniqueName(f.name)).addToPage(page, {
+            x: cx, y: cy, width: side, height: side, rotate: rot,
+            borderWidth: 1, borderColor: rgb(0.42, 0.45, 0.5),
+          });
+        } else {
+          const tf = form.createTextField(uniqueName(f.name));
+          tf.setFontSize(Math.min(14, Math.max(8, r.h * 0.6)));
+          tf.addToPage(page, {
+            x: r.x, y: r.y, width: r.w, height: r.h, rotate: rot, font,
+            borderWidth: 1, borderColor: rgb(0.6, 0.63, 0.68),
+          });
+        }
+      } catch { /* skip a field that fails to add */ }
+    }
+  };
   for (const item of items) {
     const anns = annotations[item.id] || [];
     const redacts = anns.filter((a) => a.type === 'redact');
@@ -203,6 +245,7 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}, meta
       const page = out.addPage([pointW, pointH]);
       page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
       if (others.length) await drawAnnotations(out, page, others, 0, font);
+      createFields(page, fields, pointW, pointH, 0);
       continue;
     }
 
@@ -221,19 +264,7 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}, meta
     if (others.length) await drawAnnotations(out, copied, others, R, font);
     if (fields.length) {
       const { width: Pw, height: Ph } = copied.getSize();
-      const form = out.getForm();
-      for (const f of fields) {
-        const r = toUserRect(f, Pw, Ph, R);
-        try {
-          if (f.fieldType === 'checkbox') {
-            const side = Math.min(r.w, r.h);
-            form.createCheckBox(uniqueName(f.name)).addToPage(copied, { x: r.x, y: r.y, width: side, height: side });
-          } else {
-            const tf = form.createTextField(uniqueName(f.name));
-            tf.addToPage(copied, { x: r.x, y: r.y, width: r.w, height: r.h });
-          }
-        } catch { /* skip a field that fails to add */ }
-      }
+      createFields(copied, fields, Pw, Ph, R);
     }
     out.addPage(copied);
   }
