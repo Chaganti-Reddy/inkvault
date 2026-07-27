@@ -2,6 +2,12 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0]
+
+- **Crop** — draw a box on any page to crop it to that area (applied as the PDF CropBox on export).
+- **Unicode text** — annotations, watermarks and page numbers now render non-Latin scripts (Latin-extended, Cyrillic, Greek and more) via an embedded Noto Sans font.
+- **Keyboard** — ⌘/Ctrl+S downloads the current document.
+
 ## [1.2.0]
 
 - **More annotation tools** — lines, arrows, ellipses and whiteout, alongside text, highlighter, pen, rectangles and signatures.
