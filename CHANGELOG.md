@@ -2,6 +2,14 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0]
+
+- **More annotation tools** — lines, arrows, ellipses and whiteout, alongside text, highlighter, pen, rectangles and signatures.
+- **Organize** — insert blank pages, reverse page order, and export an arbitrary page range (e.g. `1-3, 5`).
+- **Document properties** — view and edit title, author, subject and keywords; prefilled from the file, baked on export.
+- **Protect** — optional open password plus restrictions on printing, copying and editing.
+- Annotations now also render in the read-only View tab; pages fit the window width; the editor layout is locked so only the document scrolls.
+
 ## [1.1.0]
 
 - **Undo/redo** across page, annotation, stamp and form edits, with ⌘/Ctrl+Z and ⌘/Ctrl+Shift+Z (or Ctrl+Y).

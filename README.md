@@ -29,15 +29,16 @@ InkVault does the opposite: **every operation runs on your device.** Your file n
 
 | | |
 |---|---|
-| **Organize** | Merge, split, reorder (drag & drop), rotate, delete and duplicate pages. |
-| **Annotate & sign** | Text, highlighter, freehand pen, rectangles, and signatures (draw, type or upload). |
+| **Organize** | Merge, split by range, reorder (drag & drop), rotate, delete, duplicate, reverse and insert blank pages. |
+| **Annotate & sign** | Text, highlighter, freehand pen, lines, arrows, rectangles, ellipses, whiteout, and signatures (draw, type or upload). |
 | **Redact** | Draw a box and the underlying content is **truly removed** on export — the page is flattened, not just covered with black. |
 | **Fill forms** | Fill AcroForm fields (text, checkboxes, radios, dropdowns) then flatten them into the page. |
 | **OCR** | Turn scanned or image-only PDFs into searchable, selectable text in 100+ languages. |
 | **Stamp** | Add diagonal watermarks and page numbers (multiple formats and positions) across every page. |
 | **Compress** | Shrink large or scanned PDFs with a quality dial and live before/after sizes. |
-| **Protect** | Password-encrypt a PDF so it cannot be opened without the password. |
-| **Images → PDF** | Drop JPG/PNG images to build a PDF, one image per page. |
+| **Protect** | Password-encrypt a PDF, or restrict printing/copying/editing. |
+| **Details** | Edit document properties (title, author, subject, keywords). |
+| **Images → PDF** | Drop images (JPG, PNG, WebP, GIF, BMP, AVIF, …) to build a PDF, one per page. |
 | **Extract text** | Save all selectable text (including OCR results) to a `.txt` file. |
 
 Everything ends in a single **Download** that bakes your edits into a clean PDF, with full **undo/redo** (⌘/Ctrl+Z) along the way. Password-protected PDFs can also be opened for editing — InkVault asks for the password and unlocks them locally. It is a **PWA**: installable, and once loaded it works fully offline.
