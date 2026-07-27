@@ -40,6 +40,37 @@ function Page({ page, source, displayNumber, width, items, onVisible }) {
   );
 }
 
+// Mini thumbnail for the page-nav rail. Renders lazily when scrolled into the rail.
+function NavThumb({ page, source, number, active, onClick }) {
+  const canvasRef = useRef(null);
+  const wrapRef = useRef(null);
+  const [seen, setSeen] = useState(false);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => e.isIntersecting && setSeen(true)), { rootMargin: '300px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!seen || !source) return undefined;
+    let cancelled = false;
+    (async () => {
+      try { if (!cancelled) await renderPage(source.doc, page.index + 1, 56, canvasRef.current, page.rotation); }
+      catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [seen, source, page.index, page.rotation]);
+
+  return (
+    <button ref={wrapRef} className={`nav-thumb ${active ? 'on' : ''}`} onClick={onClick} title={`Page ${number}`}>
+      <canvas ref={canvasRef} className="nav-thumb-canvas" />
+      <span className="nav-thumb-num">{number}</span>
+    </button>
+  );
+}
+
 export default function PdfViewer({ pages, sources, annotations = {}, zoom = 1, onPageInView }) {
   const scrollRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(0);
@@ -70,7 +101,7 @@ export default function PdfViewer({ pages, sources, annotations = {}, zoom = 1, 
       {pages.length > 1 && (
         <nav className="pdf-nav">
           {pages.map((pg, i) => (
-            <button key={pg.id} className={`pdf-nav-btn ${current === i + 1 ? 'on' : ''}`} onClick={() => jump(i + 1)}>{i + 1}</button>
+            <NavThumb key={pg.id} page={pg} source={sources[pg.srcKey]} number={i + 1} active={current === i + 1} onClick={() => jump(i + 1)} />
           ))}
         </nav>
       )}

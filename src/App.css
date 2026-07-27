@@ -146,15 +146,21 @@
 
 .pdf-view-row { display: flex; flex: 1; min-height: 0; }
 .pdf-nav {
-  flex: 0 0 52px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
-  padding: 10px 6px; background: var(--surface); border-right: 1px solid var(--border);
+  flex: 0 0 84px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; align-items: center;
+  padding: 12px 8px; background: var(--surface); border-right: 1px solid var(--border);
 }
-.pdf-nav-btn {
-  border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--muted);
-  padding: 7px 0; font-size: 12px; font-weight: 600; cursor: pointer;
+.nav-thumb {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%;
+  border: none; background: transparent; cursor: pointer; padding: 0;
 }
-.pdf-nav-btn:hover { background: var(--surface2); color: var(--text); }
-.pdf-nav-btn.on { background: var(--accent-weak); color: var(--accent); border-color: var(--accent); }
+.nav-thumb-canvas {
+  display: block; max-width: 60px; border: 2px solid var(--border); border-radius: 4px;
+  background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.nav-thumb:hover .nav-thumb-canvas { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.nav-thumb.on .nav-thumb-canvas { border-color: var(--accent); }
+.nav-thumb-num { font-size: 11px; color: var(--muted); font-weight: 600; }
+.nav-thumb.on .nav-thumb-num { color: var(--accent); }
 .pdf-scroll {
   flex: 1; overflow: auto; background: var(--bg);
   padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;

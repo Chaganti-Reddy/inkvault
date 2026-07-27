@@ -2,6 +2,10 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.7.4]
+
+- **Thumbnail nav** — the View tab side rail now shows real page previews instead of plain numbers.
+
 ## [1.7.3]
 
 - **Smarter compression** — keeps selectable text on text PDFs (only rasterizes when that's genuinely smaller) and never produces a file larger than the original.
