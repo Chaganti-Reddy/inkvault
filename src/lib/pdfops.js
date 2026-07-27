@@ -249,9 +249,10 @@ export function extractPdf(pages, sources, ids, annotations, formValues, metadat
   return buildFrom(pages.filter((p) => set.has(p.id)), sources, annotations, formValues, metadata);
 }
 
-// Shrink a PDF by rendering every page to a JPEG at the given DPI/quality and
-// rebuilding as an image PDF. Big wins on scanned/image-heavy documents. Text
-// becomes non-selectable (run OCR first if searchability matters).
+// Shrink a PDF. Renders each page to JPEG at the given DPI/quality (big wins on
+// scans), but returns whichever is smaller — the rasterized version or the original
+// re-saved — so text PDFs keep their selectable text and the file never grows.
+// Grayscale forces the rasterized path.
 function toGrayscale(canvas) {
   const ctx = canvas.getContext('2d');
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -273,7 +274,9 @@ export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65, gray
     const page = out.addPage([pointW, pointH]);
     page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
   }
-  return out.save();
+  const raster = await out.save();
+  // Keep whichever is smaller; grayscale is an explicit visual choice, so honor it.
+  return (!grayscale && baseBytes.length <= raster.length) ? baseBytes : raster;
 }
 
 // Extract all selectable text from the edited document (reflects reorder, redaction

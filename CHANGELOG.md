@@ -2,6 +2,10 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.7.3]
+
+- **Smarter compression** — keeps selectable text on text PDFs (only rasterizes when that's genuinely smaller) and never produces a file larger than the original.
+
 ## [1.7.2]
 
 - **Editor-grade undo** — moving or editing an annotation is now its own undo step (undo restores the position/text instead of deleting it), and typing in a form field collapses into a single step per field.

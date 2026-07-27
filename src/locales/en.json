@@ -144,7 +144,7 @@
     "working": "Compressing…",
     "saved": "{{pct}}% smaller",
     "noGain": "Already small",
-    "note": "Pages are re-rendered as images, so text becomes non-selectable. Run OCR first if you need searchable text."
+    "note": "Text PDFs keep their selectable text; scans are re-rendered as images. The result is never larger than the original."
   },
   "stamp": {
     "wmTitle": "Watermark",
