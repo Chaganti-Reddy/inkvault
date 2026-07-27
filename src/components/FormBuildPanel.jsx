@@ -1,0 +1,75 @@
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { usePdf } from '../context/PdfContext.jsx';
+import AnnotateLayer from './AnnotateLayer.jsx';
+import { FiMousePointer, FiType, FiCheckSquare, FiTrash2 } from '../ui/icons.js';
+
+// Draw fillable form fields onto pages. Each becomes a real AcroForm field on export.
+export default function FormBuildPanel() {
+  const { t } = useTranslation();
+  const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, applyStamps } = usePdf();
+  const [tool, setTool] = useState('textfield');
+  const [sel, setSel] = useState(null);
+  const scrollRef = useRef(null);
+  const [baseWidth, setBaseWidth] = useState(0);
+  const counter = useRef(0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setBaseWidth(Math.min(1100, el.clientWidth - 48));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!sel || document.activeElement?.isContentEditable) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') { removeAnnotation(sel.pageId, sel.id); setSel(null); }
+      if (e.key === 'Escape') setSel(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sel, removeAnnotation]);
+
+  const width = Math.max(200, baseWidth);
+  const count = Object.values(annotations).flat().filter((a) => a.type === 'field').length;
+
+  return (
+    <div className="annotate">
+      <div className="anno-bar">
+        <div className="anno-tools">
+          <button className={`anno-tool ${tool === 'select' ? 'on' : ''}`} title={t('annotate.select')} onClick={() => setTool('select')}><FiMousePointer /></button>
+          <button className={`anno-tool ${tool === 'textfield' ? 'on' : ''}`} title={t('build.text')} onClick={() => setTool('textfield')}><FiType /></button>
+          <button className={`anno-tool ${tool === 'checkbox' ? 'on' : ''}`} title={t('build.checkbox')} onClick={() => setTool('checkbox')}><FiCheckSquare /></button>
+        </div>
+        <div className="redact-note">{t('build.note', { count })}</div>
+        <div className="spacer" />
+        {count > 0 && <button className="btn sm" onClick={() => applyStamps('field', {})}><FiTrash2 /> {t('build.clear')}</button>}
+      </div>
+
+      <div className="anno-scroll" ref={scrollRef}>
+        {pages.map((pg) => (
+          <div key={pg.id} data-pageid={pg.id} className="anno-page-wrap">
+            <AnnotateLayer
+              page={pg}
+              source={sources[pg.srcKey]}
+              width={width}
+              tool={tool}
+              color="#000000"
+              strokeW={0.004}
+              fontSize={0.03}
+              items={annotations[pg.id] || []}
+              selectedId={sel?.pageId === pg.id ? sel.id : null}
+              onSelect={(id) => setSel(id ? { pageId: pg.id, id } : null)}
+              onAdd={(ann) => addAnnotation(pg.id, { ...ann, name: `${ann.fieldType === 'checkbox' ? 'Check' : 'Field'}${++counter.current}` })}
+              onUpdate={(id, patch) => updateAnnotation(pg.id, id, patch)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

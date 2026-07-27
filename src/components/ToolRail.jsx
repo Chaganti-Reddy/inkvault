@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { FiEye, FiGrid, FiEdit3, FiEyeOff, FiType, FiSearch, FiMinimize2, FiLock, FiDroplet, FiInfo, FiCrop, FiShare2 } from '../ui/icons.js';
+import { FiEye, FiGrid, FiEdit3, FiEyeOff, FiType, FiSearch, FiMinimize2, FiLock, FiDroplet, FiInfo, FiCrop, FiShare2, FiCheckSquare } from '../ui/icons.js';
 
 // Left tool switcher. Tools are added here as they ship.
 const TOOLS = [
@@ -9,6 +9,7 @@ const TOOLS = [
   { key: 'crop', Icon: FiCrop },
   { key: 'redact', Icon: FiEyeOff },
   { key: 'forms', Icon: FiType },
+  { key: 'buildform', Icon: FiCheckSquare },
   { key: 'stamp', Icon: FiDroplet },
   { key: 'ocr', Icon: FiSearch },
   { key: 'compress', Icon: FiMinimize2 },

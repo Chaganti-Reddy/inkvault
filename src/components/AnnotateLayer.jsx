@@ -74,6 +74,8 @@ export default function AnnotateLayer({
         else if (draft.type === 'whiteout') onAdd({ type: 'whiteout', x, y, w, h });
         else if (draft.type === 'ellipse') onAdd({ type: 'ellipse', x, y, w, h, color, strokeW });
         else if (draft.type === 'crop') onAdd({ type: 'crop', x, y, w, h });
+        else if (draft.type === 'textfield') onAdd({ type: 'field', fieldType: 'text', x, y, w, h });
+        else if (draft.type === 'checkbox') onAdd({ type: 'field', fieldType: 'checkbox', x, y, w, h });
         else onAdd({ type: 'rect', x, y, w, h, color, strokeW });
       }
     }
@@ -163,10 +165,23 @@ export default function AnnotateLayer({
                 onPointerDown={(e) => startMove(e, a)} />
             </g>
           ))}
+          {items.filter((a) => a.type === 'field').map((a) => (
+            <g key={a.id}>
+              <rect x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)}
+                fill="var(--accent)" fillOpacity="0.08" stroke="var(--accent)" strokeWidth="1" strokeDasharray="4 3"
+                className={selectedId === a.id ? 'sel' : ''} onPointerDown={(e) => startMove(e, a)} />
+              <text x={px(a.x) + 4} y={py(a.y) + 13} fontSize="11" fill="var(--accent)">{a.fieldType === 'checkbox' ? '☑' : 'T'} {a.name || ''}</text>
+            </g>
+          ))}
           {items.filter((a) => a.type === 'draw').map((a) => (
             <polyline key={a.id} points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')}
               fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" strokeLinejoin="round" />
           ))}
+          {(draft?.type === 'textfield' || draft?.type === 'checkbox') && (
+            <rect x={px(Math.min(draft.x0, draft.x))} y={py(Math.min(draft.y0, draft.y))}
+              width={px(Math.abs(draft.x - draft.x0))} height={py(Math.abs(draft.y - draft.y0))}
+              fill="var(--accent)" fillOpacity="0.08" stroke="var(--accent)" strokeWidth="1" strokeDasharray="4 3" />
+          )}
           {draft?.type === 'crop' && (
             <rect x={px(Math.min(draft.x0, draft.x))} y={py(Math.min(draft.y0, draft.y))}
               width={px(Math.abs(draft.x - draft.x0))} height={py(Math.abs(draft.y - draft.y0))}

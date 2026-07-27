@@ -13,6 +13,7 @@ import ProtectPanel from '../components/ProtectPanel.jsx';
 import StampPanel from '../components/StampPanel.jsx';
 import InfoPanel from '../components/InfoPanel.jsx';
 import CropPanel from '../components/CropPanel.jsx';
+import FormBuildPanel from '../components/FormBuildPanel.jsx';
 import ExportPanel from '../components/ExportPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfops.js';
@@ -116,6 +117,7 @@ export default function Editor() {
         {tool === 'crop' && <CropPanel />}
         {tool === 'redact' && <RedactPanel />}
         {tool === 'forms' && <FormsPanel />}
+        {tool === 'buildform' && <FormBuildPanel />}
         {tool === 'stamp' && <StampPanel />}
         {tool === 'ocr' && <OcrPanel />}
         {tool === 'compress' && <CompressPanel />}

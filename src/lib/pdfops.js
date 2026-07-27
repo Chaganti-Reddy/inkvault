@@ -46,6 +46,14 @@ function displayDims(Pw, Ph, R) {
   return (R === 90 || R === 270) ? { Dw: Ph, Dh: Pw } : { Dw: Pw, Dh: Ph };
 }
 
+// A display-space normalized box → pdf-lib user-space rect (bottom-left origin).
+function toUserRect(box, Pw, Ph, R) {
+  const { Dw, Dh } = displayDims(Pw, Ph, R);
+  const a = mapPoint(box.x * Dw, box.y * Dh, Pw, Ph, R);
+  const b = mapPoint((box.x + box.w) * Dw, (box.y + box.h) * Dh, Pw, Ph, R);
+  return { x: Math.min(a.ux, b.ux), y: Math.min(a.uy, b.uy), w: Math.abs(b.ux - a.ux), h: Math.abs(b.uy - a.uy) };
+}
+
 // Map a point given in display space (top-left origin, y-down) to pdf-lib user
 // space (bottom-left origin, y-up), inverting the page's clockwise /Rotate R.
 function mapPoint(dx, dy, Pw, Ph, R) {
@@ -174,11 +182,14 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}, meta
   applyMetadata(out, metadata);
   const font = await embedTextFont(out);
   const load = sourceLoader(sources, formValues);
+  const usedFieldNames = new Set();
+  const uniqueName = (n) => { let name = (n || 'field').replace(/[^\w-]/g, '_'); let i = 1; while (usedFieldNames.has(name)) name = `${n}_${i++}`; usedFieldNames.add(name); return name; };
   for (const item of items) {
     const anns = annotations[item.id] || [];
     const redacts = anns.filter((a) => a.type === 'redact');
     const crop = anns.find((a) => a.type === 'crop');
-    const others = anns.filter((a) => a.type !== 'redact' && a.type !== 'crop');
+    const fields = anns.filter((a) => a.type === 'field');
+    const others = anns.filter((a) => a.type !== 'redact' && a.type !== 'crop' && a.type !== 'field');
 
     if (redacts.length) {
       // True redaction: rasterize the page (already rotated), paint the boxes over
@@ -208,6 +219,22 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}, meta
       copied.setCropBox(Math.min(a1.ux, b1.ux), Math.min(a1.uy, b1.uy), Math.abs(b1.ux - a1.ux), Math.abs(b1.uy - a1.uy));
     }
     if (others.length) await drawAnnotations(out, copied, others, R, font);
+    if (fields.length) {
+      const { width: Pw, height: Ph } = copied.getSize();
+      const form = out.getForm();
+      for (const f of fields) {
+        const r = toUserRect(f, Pw, Ph, R);
+        try {
+          if (f.fieldType === 'checkbox') {
+            const side = Math.min(r.w, r.h);
+            form.createCheckBox(uniqueName(f.name)).addToPage(copied, { x: r.x, y: r.y, width: side, height: side });
+          } else {
+            const tf = form.createTextField(uniqueName(f.name));
+            tf.addToPage(copied, { x: r.x, y: r.y, width: r.w, height: r.h });
+          }
+        } catch { /* skip a field that fails to add */ }
+      }
+    }
     out.addPage(copied);
   }
   return out.save();

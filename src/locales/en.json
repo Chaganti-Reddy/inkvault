@@ -78,6 +78,7 @@
     "crop": "Crop",
     "redact": "Redact",
     "forms": "Forms",
+    "buildform": "Build form",
     "stamp": "Stamp",
     "ocr": "OCR",
     "compress": "Compress",
@@ -173,6 +174,12 @@
   "forms": {
     "hint": "Fill the fields below, then Download. Values are baked in and the form is flattened.",
     "none": "No fillable form fields found in this PDF."
+  },
+  "build": {
+    "text": "Text field",
+    "checkbox": "Checkbox",
+    "note": "Draw fillable fields on the pages. ({{count}} added)",
+    "clear": "Clear fields"
   },
   "crop": {
     "note": "Draw a box on a page to crop it to that area. ({{count}} cropped)",
