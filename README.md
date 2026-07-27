@@ -32,8 +32,8 @@ InkVault does the opposite: **every operation runs on your device.** Your file n
 | **Organize** | Merge, split by range, reorder (drag & drop), rotate, delete, duplicate, reverse and insert blank pages. |
 | **Annotate & sign** | Text (any language), highlighter, freehand pen, lines, arrows, rectangles, ellipses, whiteout, and signatures (draw, type or upload). |
 | **Crop** | Draw a box to crop a page to that area. |
-| **Redact** | Draw a box and the underlying content is **truly removed** on export — the page is flattened, not just covered with black. |
-| **Fill forms** | Fill AcroForm fields (text, checkboxes, radios, dropdowns) then flatten them into the page. |
+| **Redact** | Draw a box — or **search text** to auto-mark every match — and the content is **truly removed** on export (the page is flattened, not just covered). |
+| **Forms** | Fill AcroForm fields (text, checkboxes, radios, dropdowns) and flatten them, or **build new fields** (text/checkbox) that export as real fillable widgets. |
 | **OCR** | Turn scanned or image-only PDFs into searchable, selectable text in 100+ languages. |
 | **Stamp** | Add diagonal watermarks and page numbers (multiple formats and positions) across every page. |
 | **Compress** | Shrink large or scanned PDFs with a quality dial and live before/after sizes. |

@@ -2,6 +2,11 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.0]
+
+- **Redact by search** — type a word or phrase and every occurrence across the document is marked for redaction automatically.
+- **Build form** — draw text fields and checkboxes onto pages; they export as real, fillable AcroForm fields.
+
 ## [1.5.0]
 
 - **Scan to PDF** — capture pages from your camera and turn them into a PDF.
