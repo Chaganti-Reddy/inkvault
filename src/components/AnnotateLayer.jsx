@@ -73,6 +73,7 @@ export default function AnnotateLayer({
         else if (draft.type === 'redact') onAdd({ type: 'redact', x, y, w, h });
         else if (draft.type === 'whiteout') onAdd({ type: 'whiteout', x, y, w, h });
         else if (draft.type === 'ellipse') onAdd({ type: 'ellipse', x, y, w, h, color, strokeW });
+        else if (draft.type === 'crop') onAdd({ type: 'crop', x, y, w, h });
         else onAdd({ type: 'rect', x, y, w, h, color, strokeW });
       }
     }
@@ -152,10 +153,25 @@ export default function AnnotateLayer({
               <path d="M0,0 L6,3 L0,6 Z" fill={color} />
             </marker>
           </defs>
+          {items.filter((a) => a.type === 'crop').map((a) => (
+            <g key={a.id}>
+              <rect x="0" y="0" width={size.w} height={py(a.y)} fill="#000" fillOpacity="0.35" />
+              <rect x="0" y={py(a.y + a.h)} width={size.w} height={Math.max(0, size.h - py(a.y + a.h))} fill="#000" fillOpacity="0.35" />
+              <rect x="0" y={py(a.y)} width={px(a.x)} height={py(a.h)} fill="#000" fillOpacity="0.35" />
+              <rect x={px(a.x + a.w)} y={py(a.y)} width={Math.max(0, size.w - px(a.x + a.w))} height={py(a.h)} fill="#000" fillOpacity="0.35" />
+              <rect x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="6 4"
+                onPointerDown={(e) => startMove(e, a)} />
+            </g>
+          ))}
           {items.filter((a) => a.type === 'draw').map((a) => (
             <polyline key={a.id} points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')}
               fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" strokeLinejoin="round" />
           ))}
+          {draft?.type === 'crop' && (
+            <rect x={px(Math.min(draft.x0, draft.x))} y={py(Math.min(draft.y0, draft.y))}
+              width={px(Math.abs(draft.x - draft.x0))} height={py(Math.abs(draft.y - draft.y0))}
+              fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="6 4" />
+          )}
           {draft?.type === 'draw' && (
             <polyline points={draft.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')}
               fill="none" stroke={color} strokeWidth={strokePx(strokeW)} strokeLinecap="round" />

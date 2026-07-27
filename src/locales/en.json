@@ -62,6 +62,7 @@
     "view": "View",
     "organize": "Pages",
     "annotate": "Annotate",
+    "crop": "Crop",
     "redact": "Redact",
     "forms": "Forms",
     "stamp": "Stamp",
@@ -142,6 +143,10 @@
   "forms": {
     "hint": "Fill the fields below, then Download. Values are baked in and the form is flattened.",
     "none": "No fillable form fields found in this PDF."
+  },
+  "crop": {
+    "note": "Draw a box on a page to crop it to that area. ({{count}} cropped)",
+    "clear": "Clear crops"
   },
   "redact": {
     "box": "Draw redaction box",

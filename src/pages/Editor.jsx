@@ -12,6 +12,7 @@ import CompressPanel from '../components/CompressPanel.jsx';
 import ProtectPanel from '../components/ProtectPanel.jsx';
 import StampPanel from '../components/StampPanel.jsx';
 import InfoPanel from '../components/InfoPanel.jsx';
+import CropPanel from '../components/CropPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfops.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText } from '../ui/icons.js';
@@ -104,6 +105,7 @@ export default function Editor() {
         {tool === 'view' && <PdfViewer pages={pages} sources={sources} annotations={annotations} zoom={zoom} onPageInView={setPageInView} />}
         {tool === 'organize' && <OrganizePanel />}
         {tool === 'annotate' && <AnnotatePanel />}
+        {tool === 'crop' && <CropPanel />}
         {tool === 'redact' && <RedactPanel />}
         {tool === 'forms' && <FormsPanel />}
         {tool === 'stamp' && <StampPanel />}

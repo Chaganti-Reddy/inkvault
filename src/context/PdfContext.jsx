@@ -255,6 +255,16 @@ export function PdfProvider({ children }) {
     setDirty(true);
   }, [pushHistory]);
 
+  // Set (or clear) the crop box for a page — one 'crop' annotation per page.
+  const setPageCrop = useCallback((pageId, rect) => {
+    pushHistory();
+    setAnnotations((a) => ({
+      ...a,
+      [pageId]: [...(a[pageId] || []).filter((x) => x.type !== 'crop'), ...(rect ? [{ id: nextId(), type: 'crop', ...rect }] : [])],
+    }));
+    setDirty(true);
+  }, [pushHistory]);
+
   // Replace the invisible OCR text layer for a page (drops any prior 'otext').
   const setOcrLayer = useCallback((pageId, items) => {
     setAnnotations((a) => ({
@@ -275,7 +285,7 @@ export function PdfProvider({ children }) {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
     locked, unlocking, unlockWithPassword, cancelUnlock,
     openFile, openBytes, mergeFile, importImages, insertBlankPage, rotatePages, deletePages, duplicatePages, reorderPages, close,
-    annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps,
+    annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps, setPageCrop,
     formValues, setFormValue, metadata, setMetadata,
     undo, redo, canUndo, canRedo,
     numPages: pages.length,

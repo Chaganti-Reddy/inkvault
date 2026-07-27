@@ -177,7 +177,8 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}, meta
   for (const item of items) {
     const anns = annotations[item.id] || [];
     const redacts = anns.filter((a) => a.type === 'redact');
-    const others = anns.filter((a) => a.type !== 'redact');
+    const crop = anns.find((a) => a.type === 'crop');
+    const others = anns.filter((a) => a.type !== 'redact' && a.type !== 'crop');
 
     if (redacts.length) {
       // True redaction: rasterize the page (already rotated), paint the boxes over
@@ -199,6 +200,13 @@ async function buildFrom(items, sources, annotations = {}, formValues = {}, meta
     const intrinsic = copied.getRotation().angle || 0;
     const R = (((intrinsic + (item.rotation || 0)) % 360) + 360) % 360;
     copied.setRotation(degrees(R));
+    if (crop) {
+      const { width: Pw, height: Ph } = copied.getSize();
+      const { Dw, Dh } = displayDims(Pw, Ph, R);
+      const a1 = mapPoint(crop.x * Dw, crop.y * Dh, Pw, Ph, R);
+      const b1 = mapPoint((crop.x + crop.w) * Dw, (crop.y + crop.h) * Dh, Pw, Ph, R);
+      copied.setCropBox(Math.min(a1.ux, b1.ux), Math.min(a1.uy, b1.uy), Math.abs(b1.ux - a1.ux), Math.abs(b1.uy - a1.uy));
+    }
     if (others.length) await drawAnnotations(out, copied, others, R, font);
     out.addPage(copied);
   }
