@@ -2,6 +2,14 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.0]
+
+- **Scan to PDF** — capture pages from your camera and turn them into a PDF.
+- **Compress images** — shrink standalone JPG/PNG images (downscale + re-encode), bundled as a zip.
+- **Per-page actions** — extract any single page as a PDF or save it as an image, right from the thumbnail.
+- **Grayscale** — a grayscale option when compressing.
+- **Page-jump rail** in the View tab, **toast notifications** for saves and errors, and **drop a file anywhere** on the home screen.
+
 ## [1.4.0]
 
 - **PDF → images** — export every page as JPG or PNG (screen/good/print quality) in a single zip.
