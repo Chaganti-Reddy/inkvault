@@ -3,9 +3,26 @@
 // browser — the password and document never leave the device.
 import { PDFDocument } from '@cantoo/pdf-lib';
 
-export async function protectBytes(baseBytes, password) {
+// Encrypt with an optional open password and optional usage restrictions.
+// restrict: { print, copy, edit } — true means "prevent this action".
+export async function protectBytes(baseBytes, { userPassword = '', restrict = {} } = {}) {
   const doc = await PDFDocument.load(baseBytes.slice(), { ignoreEncryption: true });
-  doc.encrypt({ userPassword: password, ownerPassword: password });
+  // Encryption needs a non-empty owner password; if the user only restricts (no open
+  // password) we use a random owner secret they never need to type.
+  const ownerPassword = userPassword || (crypto.randomUUID?.() ?? String(Math.random()));
+  doc.encrypt({
+    userPassword,
+    ownerPassword,
+    permissions: {
+      printing: restrict.print ? undefined : 'highResolution',
+      copying: !restrict.copy,
+      modifying: !restrict.edit,
+      annotating: !restrict.edit,
+      fillingForms: !restrict.edit,
+      contentAccessibility: true,
+      documentAssembly: !restrict.edit,
+    },
+  });
   return doc.save();
 }
 

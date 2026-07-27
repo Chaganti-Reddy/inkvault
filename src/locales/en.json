@@ -83,14 +83,18 @@
   "protect": {
     "title": "Password-protect this PDF",
     "sub": "Require a password to open the document. Encryption happens on your device.",
-    "password": "Password",
-    "passwordPlaceholder": "Choose a strong password",
+    "password": "Password to open (optional)",
+    "passwordPlaceholder": "Leave blank to only restrict actions",
     "confirm": "Confirm password",
     "mismatch": "Passwords don't match.",
+    "restrictTitle": "Restrict what others can do",
+    "preventPrint": "Prevent printing",
+    "preventCopy": "Prevent copying text",
+    "preventEdit": "Prevent editing & annotating",
     "run": "Protect & download",
     "working": "Encrypting…",
     "done": "Protected PDF downloaded.",
-    "note": "There is no way to recover this password. Store it somewhere safe."
+    "note": "There is no way to recover the open password — store it safely. Restrictions are enforced by PDF readers."
   },
   "compress": {
     "title": "Reduce file size",

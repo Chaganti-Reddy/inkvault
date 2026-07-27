@@ -7,21 +7,26 @@ import { FiLock, FiDownload } from '../ui/icons.js';
 
 export default function ProtectPanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, fileName } = usePdf();
+  const { pages, sources, annotations, formValues, metadata, fileName } = usePdf();
   const [pw, setPw] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [restrict, setRestrict] = useState({ print: false, copy: false, edit: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
   const mismatch = confirm.length > 0 && pw !== confirm;
-  const canGo = pw.length >= 3 && pw === confirm && !busy;
+  const hasRestriction = restrict.print || restrict.copy || restrict.edit;
+  // Either set an open password (matched) or just apply restrictions.
+  const canGo = !busy && ((pw.length >= 3 && pw === confirm) || (pw.length === 0 && hasRestriction));
+
+  const toggle = (k) => setRestrict((r) => ({ ...r, [k]: !r[k] }));
 
   const run = async () => {
     setBusy(true); setError(''); setDone(false);
     try {
-      const base = await buildPdf(pages, sources, annotations, formValues);
-      const encrypted = await protectBytes(base, pw);
+      const base = await buildPdf(pages, sources, annotations, formValues, metadata);
+      const encrypted = await protectBytes(base, { userPassword: pw, restrict });
       downloadBytes(encrypted, (fileName || 'document').replace(/\.pdf$/i, '') + '-protected.pdf');
       setDone(true);
     } catch (e) {
@@ -47,6 +52,13 @@ export default function ProtectPanel() {
           <input type="password" value={confirm} onChange={(e) => { setConfirm(e.target.value); setDone(false); }} />
         </label>
         {mismatch && <div className="pw-warn">{t('protect.mismatch')}</div>}
+
+        <div className="restrict-box">
+          <div className="restrict-title">{t('protect.restrictTitle')}</div>
+          <label className="restrict-row"><input type="checkbox" checked={restrict.print} onChange={() => toggle('print')} /> {t('protect.preventPrint')}</label>
+          <label className="restrict-row"><input type="checkbox" checked={restrict.copy} onChange={() => toggle('copy')} /> {t('protect.preventCopy')}</label>
+          <label className="restrict-row"><input type="checkbox" checked={restrict.edit} onChange={() => toggle('edit')} /> {t('protect.preventEdit')}</label>
+        </div>
 
         <button className="btn primary" onClick={run} disabled={!canGo}>
           <FiLock /> {busy ? t('protect.working') : t('protect.run')}
