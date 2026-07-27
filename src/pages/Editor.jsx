@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
@@ -24,6 +24,7 @@ export default function Editor() {
   const [pageInView, setPageInView] = useState(1);
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const downloadRef = useRef(null);
 
   // Warn before leaving with unsaved edits (edits live only in memory, by design).
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function Editor() {
       const k = e.key.toLowerCase();
       if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
       else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); }
+      else if (k === 's') { e.preventDefault(); downloadRef.current?.(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -57,6 +59,7 @@ export default function Editor() {
       setSaving(false);
     }
   };
+  downloadRef.current = download;
 
   const exportText = async () => {
     setExtracting(true);

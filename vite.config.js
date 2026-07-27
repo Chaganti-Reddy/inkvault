@@ -24,7 +24,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,mjs,wasm}'],
+        globPatterns: ['**/*.{js,css,html,svg,mjs,wasm,ttf}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
         // Cache the OCR engine (worker, core wasm, language data) the first time it

@@ -1,10 +1,24 @@
 // Rebuilds real PDF bytes from the page-model using pdf-lib. Everything runs in
 // the browser; no bytes are ever sent anywhere.
 import { PDFDocument, StandardFonts, degrees, rgb } from '@cantoo/pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import { rasterizePage, loadDocument } from './pdfview.js';
 import { applyFormValues, flattenForm } from './forms.js';
 
 const REDACT_DPI = 150;
+
+// Unicode text font (Noto Sans), fetched once and reused. Lets annotations,
+// watermarks and page numbers render non-Latin text. Falls back to Helvetica.
+let notoBytes = null;
+async function embedTextFont(out) {
+  try {
+    if (!notoBytes) notoBytes = new Uint8Array(await (await fetch('/fonts/NotoSans-Regular.ttf')).arrayBuffer());
+    out.registerFontkit(fontkit);
+    return await out.embedFont(notoBytes, { subset: true });
+  } catch {
+    return out.embedFont(StandardFonts.Helvetica);
+  }
+}
 
 function sourceLoader(sources, formValues = {}) {
   const cache = new Map();
@@ -158,7 +172,7 @@ function applyMetadata(out, meta = {}) {
 async function buildFrom(items, sources, annotations = {}, formValues = {}, metadata = {}) {
   const out = await PDFDocument.create();
   applyMetadata(out, metadata);
-  const font = await out.embedFont(StandardFonts.Helvetica);
+  const font = await embedTextFont(out);
   const load = sourceLoader(sources, formValues);
   for (const item of items) {
     const anns = annotations[item.id] || [];
