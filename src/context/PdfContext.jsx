@@ -29,6 +29,7 @@ export function PdfProvider({ children }) {
   const [annotations, setAnnotations] = useState({}); // pageId -> [{ id, type, ... normalized coords }]
   const [formValues, setFormValues] = useState({}); // srcKey -> { fieldName: value }
   const [metadata, setMetadataState] = useState({ title: '', author: '', subject: '', keywords: '' });
+  const [pendingTool, setPendingTool] = useState(null); // tool to open in after loading (from home cards)
   const setMetadata = useCallback((patch) => { setMetadataState((m) => ({ ...m, ...patch })); setDirty(true); }, []);
 
   // Undo/redo. A ref mirrors the current editable state so snapshots capture the
@@ -286,7 +287,7 @@ export function PdfProvider({ children }) {
     locked, unlocking, unlockWithPassword, cancelUnlock,
     openFile, openBytes, mergeFile, importImages, insertBlankPage, rotatePages, deletePages, duplicatePages, reorderPages, close,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps, setPageCrop,
-    formValues, setFormValue, metadata, setMetadata,
+    formValues, setFormValue, metadata, setMetadata, pendingTool, setPendingTool,
     undo, redo, canUndo, canRedo,
     numPages: pages.length,
   };

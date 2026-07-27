@@ -8,17 +8,17 @@ import {
 // FiLock is used both in the feature grid and the unlock modal.
 
 const FEATURES = [
-  { key: 'organize', Icon: FiLayers },
-  { key: 'annotate', Icon: FiEdit3 },
-  { key: 'redact', Icon: FiEyeOff },
-  { key: 'ocr', Icon: FiSearch },
-  { key: 'forms', Icon: FiType },
-  { key: 'secure', Icon: FiLock },
+  { key: 'organize', tool: 'organize', Icon: FiLayers },
+  { key: 'annotate', tool: 'annotate', Icon: FiEdit3 },
+  { key: 'redact', tool: 'redact', Icon: FiEyeOff },
+  { key: 'ocr', tool: 'ocr', Icon: FiSearch },
+  { key: 'forms', tool: 'forms', Icon: FiType },
+  { key: 'secure', tool: 'protect', Icon: FiLock },
 ];
 
 export default function Home() {
   const { t } = useTranslation();
-  const { openFile, importImages, error, loading, locked, unlocking, unlockWithPassword, cancelUnlock } = usePdf();
+  const { openFile, importImages, error, loading, locked, unlocking, unlockWithPassword, cancelUnlock, setPendingTool } = usePdf();
   const inputRef = useRef(null);
   const imgRef = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -123,12 +123,12 @@ export default function Home() {
       )}
 
       <section className="features">
-        {FEATURES.map(({ key, Icon }) => (
-          <div className="feature" key={key}>
+        {FEATURES.map(({ key, tool, Icon }) => (
+          <button className="feature" key={key} type="button" onClick={() => { setPendingTool(tool); inputRef.current?.click(); }}>
             <Icon className="feature-icon" />
             <div className="feature-title">{t(`home.features.${key}`)}</div>
             <div className="feature-sub">{t(`home.features.${key}Sub`)}</div>
-          </div>
+          </button>
         ))}
       </section>
     </main>
