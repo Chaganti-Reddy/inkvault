@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
 import PageThumb from './PageThumb.jsx';
-import { extractPdf, downloadBytes } from '../lib/pdfops.js';
+import { extractPdf, downloadBytes, downloadBlob, renderPagesToImages } from '../lib/pdfops.js';
 import { FiRotateCw, FiTrash2, FiLayers, FiDownload, FiCopy, FiCheckSquare, FiFilePlus, FiRepeat } from '../ui/icons.js';
 
 // Parse "1-3,5,8" into zero-based page indices.
@@ -20,7 +20,7 @@ function parseRanges(str, total) {
 
 export default function OrganizePanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, fileName, rotatePages, deletePages, duplicatePages, reorderPages, mergeFile, insertBlankPage } = usePdf();
+  const { pages, sources, annotations, formValues, metadata, fileName, rotatePages, deletePages, duplicatePages, reorderPages, mergeFile, insertBlankPage } = usePdf();
   const [rangeStr, setRangeStr] = useState('');
   const [selected, setSelected] = useState(() => new Set());
   const [lastId, setLastId] = useState(null);
@@ -86,6 +86,19 @@ export default function OrganizePanel() {
 
   const reverse = () => reorderPages([...ids].reverse());
 
+  const base = (fileName || 'document').replace(/\.pdf$/i, '');
+  const extractOne = async (id) => {
+    const n = ids.indexOf(id) + 1;
+    const bytes = await extractPdf(pages, sources, [id], annotations, formValues, metadata);
+    downloadBytes(bytes, `${base}-page-${n}.pdf`);
+  };
+  const imageOne = async (id) => {
+    const n = ids.indexOf(id) + 1;
+    const pg = pages.find((p) => p.id === id);
+    const imgs = await renderPagesToImages([pg], sources, annotations, formValues, metadata, { format: 'png', dpi: 150 });
+    downloadBlob(imgs[0].data, `${base}-page-${n}.png`);
+  };
+
   const selCount = selected.size;
   const scopeLabel = selCount ? t('organize.selected', { n: selCount }) : t('organize.allPages', { n: ids.length });
 
@@ -121,6 +134,8 @@ export default function OrganizePanel() {
             onSelect={select}
             onRotate={(id) => rotatePages([id])}
             onDelete={(id) => { deletePages([id]); setSelected((s) => { const n = new Set(s); n.delete(id); return n; }); }}
+            onExtract={extractOne}
+            onToImage={imageOne}
             onDragStart={onDragStart}
             onDragOver={onDragOver}
             onDrop={onDrop}

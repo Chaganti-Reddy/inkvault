@@ -293,6 +293,15 @@ export function downloadText(text, name) {
   URL.revokeObjectURL(url);
 }
 
+export function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name || 'download';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function downloadBytes(bytes, name) {
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);

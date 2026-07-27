@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { renderPage } from '../lib/pdfview.js';
-import { FiRotateCw, FiTrash2 } from '../ui/icons.js';
+import { FiRotateCw, FiTrash2, FiDownload, FiImage } from '../ui/icons.js';
 
 const THUMB_WIDTH = 150;
 
 export default function PageThumb({
   page, source, number, selected, dropSide,
-  onSelect, onRotate, onDelete,
+  onSelect, onRotate, onDelete, onExtract, onToImage,
   onDragStart, onDragOver, onDrop, onDragEnd,
 }) {
   const canvasRef = useRef(null);
@@ -51,6 +51,8 @@ export default function PageThumb({
         <span className="thumb-num">{number}</span>
         <span className="thumb-actions">
           <button className="thumb-btn" title="Rotate" onClick={(e) => { e.stopPropagation(); onRotate(page.id); }}><FiRotateCw /></button>
+          <button className="thumb-btn" title="Extract page as PDF" onClick={(e) => { e.stopPropagation(); onExtract(page.id); }}><FiDownload /></button>
+          <button className="thumb-btn" title="Save page as image" onClick={(e) => { e.stopPropagation(); onToImage(page.id); }}><FiImage /></button>
           <button className="thumb-btn danger" title="Delete" onClick={(e) => { e.stopPropagation(); onDelete(page.id); }}><FiTrash2 /></button>
         </span>
       </div>
