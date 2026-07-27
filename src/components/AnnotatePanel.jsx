@@ -16,7 +16,7 @@ const TOOLS = [
   { key: 'ellipse', Icon: FiCircle },
   { key: 'whiteout', Icon: LuEraser },
 ];
-const COLORS = ['#111111', '#e5484d', '#2f6feb', '#2f9e6d'];
+const COLORS = ['#111111', '#e5484d', '#2f6feb', '#2f9e6d', '#ffd54a'];
 const STROKES = [0.003, 0.005, 0.009];
 const FONTS = [0.02, 0.03, 0.045];
 
@@ -61,18 +61,53 @@ export default function AnnotatePanel({ zoom = 1 }) {
     return () => el.removeEventListener('scroll', onScroll);
   }, [pages]);
 
-  // Delete key removes the selected annotation (unless editing text).
+  // Keyboard: delete removes the selection; arrows nudge it (Shift = larger step).
+  // Ignored while editing text or focused in an input.
   useEffect(() => {
     const onKey = (e) => {
       if (!sel) return;
-      const editing = document.activeElement?.isContentEditable;
-      if (editing) return;
-      if (e.key === 'Delete' || e.key === 'Backspace') { removeAnnotation(sel.pageId, sel.id); setSel(null); }
-      if (e.key === 'Escape') setSel(null);
+      const el = document.activeElement;
+      if (el?.isContentEditable || el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA') return;
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeAnnotation(sel.pageId, sel.id); setSel(null); return; }
+      if (e.key === 'Escape') { setSel(null); return; }
+      const step = (e.shiftKey ? 0.02 : 0.005) * (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1);
+      const horiz = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+      const vert = e.key === 'ArrowUp' || e.key === 'ArrowDown';
+      if (!horiz && !vert) return;
+      e.preventDefault();
+      const ann = (annotations[sel.pageId] || []).find((a) => a.id === sel.id);
+      if (!ann) return;
+      beginChange();
+      const d = horiz ? { x: step, y: 0 } : { x: 0, y: step };
+      if (ann.type === 'line' || ann.type === 'arrow') {
+        updateAnnotation(sel.pageId, sel.id, { x0: ann.x0 + d.x, y0: ann.y0 + d.y, x1: ann.x1 + d.x, y1: ann.y1 + d.y });
+      } else if (ann.type === 'draw') {
+        updateAnnotation(sel.pageId, sel.id, { points: ann.points.map((p) => ({ x: p.x + d.x, y: p.y + d.y })) });
+      } else {
+        updateAnnotation(sel.pageId, sel.id, { x: (ann.x || 0) + d.x, y: (ann.y || 0) + d.y });
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [sel, removeAnnotation]);
+  }, [sel, removeAnnotation, annotations, beginChange, updateAnnotation]);
+
+  // Apply a color / stroke / font change to the selected annotation too, so the
+  // toolbar edits the current object (Adobe-style), not just future ones.
+  const applyColor = (c) => {
+    setColor(c);
+    if (!sel) return;
+    const ann = (annotations[sel.pageId] || []).find((a) => a.id === sel.id);
+    if (ann && ann.type !== 'image' && ann.type !== 'redact' && ann.type !== 'whiteout') { beginChange(); updateAnnotation(sel.pageId, sel.id, { color: c }); }
+  };
+  const applySize = (i) => {
+    setSizeIdx(i);
+    if (!sel) return;
+    const ann = (annotations[sel.pageId] || []).find((a) => a.id === sel.id);
+    if (!ann) return;
+    beginChange();
+    if (ann.type === 'text') updateAnnotation(sel.pageId, sel.id, { size: FONTS[i] });
+    else if ('strokeW' in ann) updateAnnotation(sel.pageId, sel.id, { strokeW: STROKES[i] });
+  };
 
   const placeSignature = ({ dataUrl, ratio }) => {
     const pageId = currentPage.current || pages[0]?.id;
@@ -92,7 +127,7 @@ export default function AnnotatePanel({ zoom = 1 }) {
       <div className="anno-bar">
         <div className="anno-tools">
           {TOOLS.map(({ key, Icon }) => (
-            <button key={key} className={`anno-tool ${tool === key ? 'on' : ''}`} title={t(`annotate.${key}`)} onClick={() => setTool(key)}>
+            <button key={key} className={`anno-tool ${tool === key ? 'on' : ''}`} title={t(`annotate.${key}`)} onClick={() => { setTool(key); if (key === 'highlight' && !color.startsWith('#ff')) setColor('#ffd54a'); }}>
               <Icon />
             </button>
           ))}
@@ -102,15 +137,15 @@ export default function AnnotatePanel({ zoom = 1 }) {
         <div className="anno-sep" />
         <div className="anno-colors">
           {COLORS.map((c) => (
-            <button key={c} className={`swatch ${color === c ? 'on' : ''}`} style={{ background: c }} onClick={() => setColor(c)} aria-label={c} />
+            <button key={c} className={`swatch ${color === c ? 'on' : ''}`} style={{ background: c }} onClick={() => applyColor(c)} aria-label={c} />
           ))}
-          <input type="color" className="swatch-custom" value={color} onChange={(e) => setColor(e.target.value)} title={t('annotate.color')} />
+          <input type="color" className="swatch-custom" value={color} onChange={(e) => applyColor(e.target.value)} title={t('annotate.color')} />
         </div>
 
         <div className="anno-sep" />
         <div className="anno-sizes">
           {['S', 'M', 'L'].map((s, i) => (
-            <button key={s} className={`size-btn ${sizeIdx === i ? 'on' : ''}`} onClick={() => setSizeIdx(i)}>{s}</button>
+            <button key={s} className={`size-btn ${sizeIdx === i ? 'on' : ''}`} onClick={() => applySize(i)}>{s}</button>
           ))}
         </div>
 
@@ -138,6 +173,7 @@ export default function AnnotatePanel({ zoom = 1 }) {
               onSelect={(id) => setSel(id ? { pageId: pg.id, id } : null)}
               onAdd={(ann) => addAnnotation(pg.id, ann)}
               onUpdate={(id, patch) => updateAnnotation(pg.id, id, patch)}
+              onRemove={(id) => { removeAnnotation(pg.id, id); setSel((s) => (s?.id === id ? null : s)); }}
               onBeginChange={beginChange}
             />
           </div>

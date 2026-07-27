@@ -31,7 +31,7 @@ export function bakeForm(doc, values = {}, font) {
         if (max != null && s.length > max) s = s.slice(0, max);
         field.setText(s === '' ? undefined : s);
       } else if (field instanceof PDFCheckBox) {
-        val ? field.check() : field.uncheck();
+        if (val) field.check(); else field.uncheck();
       } else if (field instanceof PDFRadioGroup) {
         if (val == null || val === '') field.clear?.();
         else field.select(String(val));

@@ -15,7 +15,7 @@ export async function loadDocument(data) {
 // Render one page onto a canvas at the given CSS width, accounting for devicePixelRatio
 // so text stays crisp on high-DPI screens. `rotation` (0/90/180/270) is applied on
 // top of the page's intrinsic rotation. Returns the rendered { width, height } in CSS px.
-export async function renderPage(doc, pageNumber, cssWidth, canvas, rotation = 0) {
+export async function renderPage(doc, pageNumber, cssWidth, canvas, rotation = 0, onTask) {
   const page = await doc.getPage(pageNumber);
   const total = (((page.rotate || 0) + rotation) % 360 + 360) % 360;
   const unscaled = page.getViewport({ scale: 1, rotation: total });
@@ -30,7 +30,11 @@ export async function renderPage(doc, pageNumber, cssWidth, canvas, rotation = 0
 
   const ctx = canvas.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  await page.render({ canvasContext: ctx, viewport }).promise;
+  // Expose the render task so callers can cancel it if width/rotation changes
+  // mid-render (avoids "same canvas during multiple render operations").
+  const task = page.render({ canvasContext: ctx, viewport });
+  onTask?.(task);
+  await task.promise;
   return { width: viewport.width, height: viewport.height };
 }
 

@@ -249,11 +249,20 @@
 .anno-page { position: relative; background: #fff; box-shadow: var(--shadow); border-radius: 4px; }
 .anno-surface { position: absolute; inset: 0; touch-action: none; }
 .anno-surface.tool-text { cursor: text; }
-.anno-surface.tool-pen, .anno-surface.tool-highlight, .anno-surface.tool-rect { cursor: crosshair; }
+.anno-surface.tool-select { cursor: default; }
+.anno-surface.tool-pen, .anno-surface.tool-highlight, .anno-surface.tool-rect,
+.anno-surface.tool-line, .anno-surface.tool-arrow, .anno-surface.tool-ellipse,
+.anno-surface.tool-whiteout, .anno-surface.tool-redact, .anno-surface.tool-crop,
+.anno-surface.tool-textfield, .anno-surface.tool-checkbox { cursor: crosshair; }
 .anno-svg { position: absolute; inset: 0; pointer-events: none; }
-.anno-svg rect, .anno-svg polyline { pointer-events: visiblePainted; }
+.anno-svg rect, .anno-svg polyline, .anno-svg ellipse, .anno-svg line { pointer-events: visiblePainted; }
 .anno-svg .sel { outline: none; }
-.anno-svg rect.sel { stroke: var(--accent); stroke-dasharray: 4 3; stroke-width: 1.5; }
+.anno-svg rect.sel, .anno-svg ellipse.sel { stroke: var(--accent); }
+.anno-svg .sel-stroke { filter: drop-shadow(0 0 1.5px var(--accent)); }
+/* selection UI drawn on top so it stays clickable over text/image annotations */
+.anno-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.anno-overlay .sel-outline { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.anno-overlay .handle { fill: #fff; stroke: var(--accent); stroke-width: 1.5; pointer-events: all; }
 .anno-text {
   position: absolute; min-width: 12px; min-height: 1em; outline: none; line-height: 1.15;
   white-space: pre-wrap; cursor: move; padding: 0 1px;
