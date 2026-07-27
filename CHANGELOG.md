@@ -2,6 +2,11 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.7.1]
+
+- **Undo now covers Apply** — undo/redo snapshots the whole document, so any chain step (including baking edits with Apply) can be undone.
+- **Live preview in View** — watermarks, page numbers, form fields and crop boxes now show in the View tab before you export.
+
 ## [1.7.0]
 
 - **Apply** — bake the current edits into the working document in place, then keep editing the result. Chain operations freely: watermark → Apply → split the watermarked pages → crop one → and so on, all without leaving the app.

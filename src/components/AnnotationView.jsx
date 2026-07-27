@@ -35,6 +35,27 @@ export default function AnnotationView({ items, w, h }) {
         {items.filter((a) => a.type === 'draw').map((a) => (
           <polyline key={a.id} points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')} fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" strokeLinejoin="round" />
         ))}
+        {items.filter((a) => a.type === 'crop').map((a) => (
+          <g key={a.id}>
+            <rect x="0" y="0" width={w} height={py(a.y)} fill="#000" fillOpacity="0.35" />
+            <rect x="0" y={py(a.y + a.h)} width={w} height={Math.max(0, h - py(a.y + a.h))} fill="#000" fillOpacity="0.35" />
+            <rect x="0" y={py(a.y)} width={px(a.x)} height={py(a.h)} fill="#000" fillOpacity="0.35" />
+            <rect x={px(a.x + a.w)} y={py(a.y)} width={Math.max(0, w - px(a.x + a.w))} height={py(a.h)} fill="#000" fillOpacity="0.35" />
+            <rect x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)} fill="none" stroke="#574fd6" strokeWidth="1.5" strokeDasharray="6 4" />
+          </g>
+        ))}
+        {items.filter((a) => a.type === 'field').map((a) => (
+          <rect key={a.id} x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)} fill="#574fd6" fillOpacity="0.08" stroke="#574fd6" strokeWidth="1" strokeDasharray="4 3" />
+        ))}
+        {items.filter((a) => (a.type === 'watermark' || a.type === 'pagenum') && a.text).map((a) => {
+          const fs = Math.max(8, a.size * h);
+          const x = px(a.x); const y = py(a.y) + fs * 0.82;
+          const anchor = a.align === 'center' ? 'middle' : a.align === 'right' ? 'end' : 'start';
+          return (
+            <text key={a.id} x={x} y={y} fontSize={fs} fill={a.color || '#000'} fillOpacity={a.opacity == null ? 1 : a.opacity}
+              textAnchor={anchor} transform={a.angle ? `rotate(${-a.angle} ${x} ${y})` : undefined}>{a.text}</text>
+          );
+        })}
       </svg>
       {items.filter((a) => a.type === 'image').map((a) => (
         <img key={a.id} src={a.dataUrl} alt="" className="anno-view-img" style={{ left: `${a.x * 100}%`, top: `${a.y * 100}%`, width: `${a.w * 100}%` }} draggable={false} />

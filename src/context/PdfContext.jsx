@@ -38,8 +38,8 @@ export function PdfProvider({ children }) {
   // Undo/redo. A ref mirrors the current editable state so snapshots capture the
   // latest values without stale closures. History lives in refs (no setState inside
   // setState — Strict-Mode safe); `histVer` bumps to re-render Undo/Redo buttons.
-  const stateRef = useRef({ pages: [], annotations: {}, formValues: {} });
-  useEffect(() => { stateRef.current = { pages, annotations, formValues }; }, [pages, annotations, formValues]);
+  const stateRef = useRef({ sources: {}, pages: [], annotations: {}, formValues: {}, metadata: {}, fileName: '' });
+  useEffect(() => { stateRef.current = { sources, pages, annotations, formValues, metadata, fileName }; }, [sources, pages, annotations, formValues, metadata, fileName]);
   const pastRef = useRef([]);
   const futureRef = useRef([]);
   const [histVer, setHistVer] = useState(0);
@@ -54,6 +54,9 @@ export function PdfProvider({ children }) {
 
   const restore = useCallback((snap) => {
     setPages(snap.pages); setAnnotations(snap.annotations); setFormValues(snap.formValues);
+    if (snap.sources) setSources(snap.sources);
+    if (snap.metadata) setMetadataState(snap.metadata);
+    if (snap.fileName != null) setFileName(snap.fileName);
     stateRef.current = snap;
     setDirty(true);
   }, []);
@@ -142,19 +145,28 @@ export function PdfProvider({ children }) {
 
   // Bake all current edits into the working document, in place, so further tools
   // operate on the result (watermark → apply → split the watermarked doc, etc.).
+  // Pushes history first, so Apply itself can be undone.
   const applyEdits = useCallback(async () => {
     if (!pages.length) return;
     setLoading(true);
     try {
       const bytes = await buildPdf(pages, sources, annotations, formValues, metadata);
-      await openBytes(bytes, fileName);
+      const canonical = new Uint8Array(bytes);
+      const doc = await loadDocument(canonical.slice());
+      pushHistory();
+      const key = `applied${Date.now()}`;
+      setSources({ [key]: { bytes: canonical, doc, name: fileName } });
+      setPages(Array.from({ length: doc.numPages }, (_, i) => ({ id: nextId(), srcKey: key, index: i, rotation: 0 })));
+      setAnnotations({});
+      setFormValues({});
+      setDirty(true);
       toast(i18n.t('editor.applied'));
     } catch (e) {
       setError(fail(e?.message || String(e)));
     } finally {
       setLoading(false);
     }
-  }, [pages, sources, annotations, formValues, metadata, fileName, openBytes]);
+  }, [pages, sources, annotations, formValues, metadata, fileName, pushHistory]);
 
   const openFile = useCallback(async (file) => {
     if (!isPdf(file)) { setError(fail(i18n.t('home.errorType'))); return; }
