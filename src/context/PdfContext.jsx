@@ -4,7 +4,10 @@ import { loadDocument, readFileBytes, isPdf } from '../lib/pdfview.js';
 import { imagesToPdf, isImage } from '../lib/images.js';
 import { decryptBytes } from '../lib/protect.js';
 import { blankPdfBytes } from '../lib/pdfops.js';
+import { toast } from '../lib/toast.js';
 import i18n from '../i18n.js';
+
+const fail = (msg) => { toast(msg, 'error'); return msg; };
 
 const Ctx = createContext(null);
 export const usePdf = () => useContext(Ctx);
@@ -110,7 +113,7 @@ export function PdfProvider({ children }) {
       clearHistory();
       navigate('/edit');
     } catch (e) {
-      setError(e?.message || String(e));
+      setError(fail(e?.message || String(e)));
     } finally {
       setLoading(false);
     }
@@ -127,7 +130,7 @@ export function PdfProvider({ children }) {
       setLocked(null);
       await openBytes(plain, name);
     } catch {
-      setError(i18n.t('home.errorPassword'));
+      setError(fail(i18n.t('home.errorPassword')));
     } finally {
       setUnlocking(false);
     }
@@ -136,7 +139,7 @@ export function PdfProvider({ children }) {
   const cancelUnlock = useCallback(() => { setLocked(null); setError(''); }, []);
 
   const openFile = useCallback(async (file) => {
-    if (!isPdf(file)) { setError(i18n.t('home.errorType')); return; }
+    if (!isPdf(file)) { setError(fail(i18n.t('home.errorType'))); return; }
     const data = await readFileBytes(file);
     await openBytes(data, file.name);
   }, [openBytes]);
@@ -144,14 +147,14 @@ export function PdfProvider({ children }) {
   // Build a PDF from image files (one per page) and open it.
   const importImages = useCallback(async (files) => {
     const imgs = [...files].filter(isImage);
-    if (!imgs.length) { setError(i18n.t('home.errorImage')); return; }
+    if (!imgs.length) { setError(fail(i18n.t('home.errorImage'))); return; }
     setError('');
     setLoading(true);
     try {
       const bytes = await imagesToPdf(imgs);
       await openBytes(bytes, 'images.pdf');
     } catch (e) {
-      setError(e?.message || String(e));
+      setError(fail(e?.message || String(e)));
     } finally {
       setLoading(false);
     }
@@ -159,7 +162,7 @@ export function PdfProvider({ children }) {
 
   // Merge another PDF's pages onto the end of the model.
   const mergeFile = useCallback(async (file) => {
-    if (!isPdf(file)) { setError(i18n.t('home.errorType')); return; }
+    if (!isPdf(file)) { setError(fail(i18n.t('home.errorType'))); return; }
     const data = await readFileBytes(file);
     const canonical = new Uint8Array(data);
     const doc = await loadDocument(canonical.slice());

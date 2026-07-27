@@ -41,7 +41,12 @@ export default function Home() {
   };
 
   return (
-    <main className="home">
+    <main
+      className="home"
+      onDragOver={(e) => { e.preventDefault(); if (!loading) setDragging(true); }}
+      onDragLeave={(e) => { if (e.target === e.currentTarget) setDragging(false); }}
+      onDrop={(e) => !loading && onDrop(e)}
+    >
       <section className="hero">
         <h1>{t('home.headline')}</h1>
         <p className="hero-sub">{t('home.sub')}</p>

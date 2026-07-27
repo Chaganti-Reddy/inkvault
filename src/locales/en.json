@@ -51,6 +51,9 @@
     "rendering": "Rendering pages…",
     "saving": "Saving…"
   },
+  "toast": {
+    "saved": "Downloaded"
+  },
   "editor": {
     "undo": "Undo",
     "redo": "Redo",

@@ -16,6 +16,7 @@ import CropPanel from '../components/CropPanel.jsx';
 import ExportPanel from '../components/ExportPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfops.js';
+import { toast } from '../lib/toast.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText } from '../ui/icons.js';
 
 export default function Editor() {
@@ -60,6 +61,9 @@ export default function Editor() {
     try {
       const bytes = await buildPdf(pages, sources, annotations, formValues, metadata);
       downloadBytes(bytes, fileName || 'document.pdf');
+      toast(t('toast.saved'));
+    } catch (e) {
+      toast(e?.message || String(e), 'error');
     } finally {
       setSaving(false);
     }
