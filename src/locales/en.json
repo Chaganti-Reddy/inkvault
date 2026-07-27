@@ -180,6 +180,10 @@
   },
   "redact": {
     "box": "Draw redaction box",
+    "searchPlaceholder": "Find text to redact",
+    "mark": "Redact matches",
+    "searching": "Searching…",
+    "clearAll": "Clear all",
     "note": "Redacted pages are flattened on export — hidden content is permanently removed. ({{count}} marked)"
   },
   "annotate": {
