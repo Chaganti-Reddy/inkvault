@@ -40,6 +40,7 @@ InkVault does the opposite: **every operation runs on your device.** Your file n
 | **Protect** | Password-encrypt a PDF, or restrict printing/copying/editing. |
 | **Details** | Edit document properties (title, author, subject, keywords). |
 | **Images → PDF** | Drop images (JPG, PNG, WebP, GIF, BMP, AVIF, …) to build a PDF, one per page. |
+| **PDF → images / split** | Export pages as JPG/PNG, or split into one PDF per page — bundled as a zip. |
 | **Extract text** | Save all selectable text (including OCR results) to a `.txt` file. |
 
 Everything ends in a single **Download** that bakes your edits into a clean PDF, with full **undo/redo** (⌘/Ctrl+Z) along the way. Password-protected PDFs can also be opened for editing — InkVault asks for the password and unlocks them locally. It is a **PWA**: installable, and once loaded it works fully offline.

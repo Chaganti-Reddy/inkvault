@@ -2,6 +2,12 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0]
+
+- **PDF → images** — export every page as JPG or PNG (screen/good/print quality) in a single zip.
+- **Split into files** — save each page as its own PDF, bundled in a zip.
+- **Faster start** — the home tool cards now open a file and jump straight into that tool.
+
 ## [1.3.0]
 
 - **Crop** — draw a box on any page to crop it to that area (applied as the PDF CropBox on export).
