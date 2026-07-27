@@ -67,6 +67,9 @@
   "editor": {
     "undo": "Undo",
     "redo": "Redo",
+    "apply": "Apply",
+    "applyHint": "Bake current edits into the document so you can keep working on the result",
+    "applied": "Edits applied — keep editing the result",
     "textBtn": "Text",
     "extractText": "Extract text to a .txt file",
     "extracting": "Extracting…"

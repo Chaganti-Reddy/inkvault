@@ -44,7 +44,7 @@ InkVault does the opposite: **every operation runs on your device.** Your file n
 | **Compress images** | Shrink standalone JPG/PNG images right from the home screen. |
 | **Extract text** | Save all selectable text (including OCR results) to a `.txt` file. |
 
-Everything ends in a single **Download** that bakes your edits into a clean PDF, with full **undo/redo** (⌘/Ctrl+Z) along the way. Password-protected PDFs can also be opened for editing — InkVault asks for the password and unlocks them locally. It is a **PWA**: installable, and once loaded it works fully offline.
+Every tool's edits accumulate in one session and bake together on the final **Download** — no upload → apply → re-upload loop. Need to chain? Hit **Apply** to bake edits into the working document and keep going on the result (watermark → Apply → split the watermarked pages → crop one → …). Full **undo/redo** (⌘/Ctrl+Z) throughout. Password-protected PDFs can also be opened for editing — InkVault asks for the password and unlocks them locally. It is a **PWA**: installable, and once loaded it works fully offline.
 
 ## Screenshots
 

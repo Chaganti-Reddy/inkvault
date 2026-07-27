@@ -2,6 +2,10 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.7.0]
+
+- **Apply** — bake the current edits into the working document in place, then keep editing the result. Chain operations freely: watermark → Apply → split the watermarked pages → crop one → and so on, all without leaving the app.
+
 ## [1.6.0]
 
 - **Redact by search** — type a word or phrase and every occurrence across the document is marked for redaction automatically.

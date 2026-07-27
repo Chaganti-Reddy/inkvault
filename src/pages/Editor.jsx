@@ -18,11 +18,11 @@ import ExportPanel from '../components/ExportPanel.jsx';
 import ToolRail from '../components/ToolRail.jsx';
 import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfops.js';
 import { toast } from '../lib/toast.js';
-import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText } from '../ui/icons.js';
+import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText, FiCheck } from '../ui/icons.js';
 
 export default function Editor() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, metadata, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo, pendingTool, setPendingTool } = usePdf();
+  const { pages, sources, annotations, formValues, metadata, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo, pendingTool, setPendingTool, applyEdits } = usePdf();
   const [tool, setTool] = useState(pendingTool || 'view');
   const [zoom, setZoom] = useState(1);
   const [pageInView, setPageInView] = useState(1);
@@ -102,6 +102,9 @@ export default function Editor() {
             )}
           </div>
           <div className="toolbar-right">
+            <button className="btn sm" onClick={applyEdits} disabled={!dirty || saving} title={t('editor.applyHint')}>
+              <FiCheck /> {t('editor.apply')}
+            </button>
             <button className="btn sm" onClick={exportText} disabled={extracting} title={t('editor.extractText')}>
               <FiFileText /> {extracting ? t('editor.extracting') : t('editor.textBtn')}
             </button>

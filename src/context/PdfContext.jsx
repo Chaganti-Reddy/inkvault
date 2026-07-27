@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { loadDocument, readFileBytes, isPdf } from '../lib/pdfview.js';
 import { imagesToPdf, isImage } from '../lib/images.js';
 import { decryptBytes } from '../lib/protect.js';
-import { blankPdfBytes } from '../lib/pdfops.js';
+import { blankPdfBytes, buildPdf } from '../lib/pdfops.js';
 import { toast } from '../lib/toast.js';
 import i18n from '../i18n.js';
 
@@ -107,6 +107,8 @@ export function PdfProvider({ children }) {
       } catch { setMetadataState({ title: '', author: '', subject: '', keywords: '' }); }
       setSources({ [key]: { bytes: canonical, doc, name: name || 'document.pdf' } });
       setPages(items);
+      setAnnotations({});
+      setFormValues({});
       setFileName(name || 'document.pdf');
       setDirty(false);
       setLocked(null);
@@ -137,6 +139,22 @@ export function PdfProvider({ children }) {
   }, [locked, openBytes]);
 
   const cancelUnlock = useCallback(() => { setLocked(null); setError(''); }, []);
+
+  // Bake all current edits into the working document, in place, so further tools
+  // operate on the result (watermark → apply → split the watermarked doc, etc.).
+  const applyEdits = useCallback(async () => {
+    if (!pages.length) return;
+    setLoading(true);
+    try {
+      const bytes = await buildPdf(pages, sources, annotations, formValues, metadata);
+      await openBytes(bytes, fileName);
+      toast(i18n.t('editor.applied'));
+    } catch (e) {
+      setError(fail(e?.message || String(e)));
+    } finally {
+      setLoading(false);
+    }
+  }, [pages, sources, annotations, formValues, metadata, fileName, openBytes]);
 
   const openFile = useCallback(async (file) => {
     if (!isPdf(file)) { setError(fail(i18n.t('home.errorType'))); return; }
@@ -288,7 +306,7 @@ export function PdfProvider({ children }) {
   const value = {
     sources, pages, fileName, loading, error, dirty, setError, setDirty,
     locked, unlocking, unlockWithPassword, cancelUnlock,
-    openFile, openBytes, mergeFile, importImages, insertBlankPage, rotatePages, deletePages, duplicatePages, reorderPages, close,
+    openFile, openBytes, mergeFile, importImages, insertBlankPage, rotatePages, deletePages, duplicatePages, reorderPages, close, applyEdits,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps, setPageCrop,
     formValues, setFormValue, metadata, setMetadata, pendingTool, setPendingTool,
     undo, redo, canUndo, canRedo,
