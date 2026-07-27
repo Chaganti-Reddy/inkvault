@@ -22,7 +22,7 @@ const FONTS = [0.02, 0.03, 0.045];
 
 export default function AnnotatePanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation } = usePdf();
+  const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, beginChange } = usePdf();
   const [tool, setTool] = useState('select');
   const [color, setColor] = useState('#e5484d');
   const [sizeIdx, setSizeIdx] = useState(1);
@@ -138,6 +138,7 @@ export default function AnnotatePanel() {
               onSelect={(id) => setSel(id ? { pageId: pg.id, id } : null)}
               onAdd={(ann) => addAnnotation(pg.id, ann)}
               onUpdate={(id, patch) => updateAnnotation(pg.id, id, patch)}
+              onBeginChange={beginChange}
             />
           </div>
         ))}

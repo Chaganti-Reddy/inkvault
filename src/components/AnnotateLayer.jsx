@@ -8,13 +8,14 @@ const LINE_TOOLS = ['line', 'arrow'];
 // so they survive zoom and map cleanly onto the exported PDF.
 export default function AnnotateLayer({
   page, source, width, tool, color, strokeW, fontSize,
-  items, selectedId, onSelect, onAdd, onUpdate,
+  items, selectedId, onSelect, onAdd, onUpdate, onBeginChange,
 }) {
   const canvasRef = useRef(null);
   const surfRef = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [draft, setDraft] = useState(null); // in-progress shape/pen
   const dragRef = useRef(null);
+  const editPushedRef = useRef(false); // one history snapshot per text-edit session
 
   useEffect(() => {
     if (!source) return;
@@ -87,6 +88,7 @@ export default function AnnotateLayer({
     if (tool !== 'select') return;
     e.stopPropagation();
     onSelect(item.id);
+    onBeginChange?.(); // one history snapshot per drag, not per pointer-move
     const p = rel(e);
     dragRef.current = { id: item.id, dx: p.x - item.x, dy: p.y - item.y };
     surfRef.current.setPointerCapture(e.pointerId);
@@ -224,7 +226,8 @@ export default function AnnotateLayer({
             suppressContentEditableWarning
             onPointerDown={(e) => startMove(e, a)}
             onFocus={() => onSelect(a.id)}
-            onBlur={(e) => onUpdate(a.id, { text: e.currentTarget.textContent })}
+            onBeforeInput={() => { if (!editPushedRef.current) { onBeginChange?.(); editPushedRef.current = true; } }}
+            onBlur={(e) => { onUpdate(a.id, { text: e.currentTarget.textContent }); editPushedRef.current = false; }}
           >{a.text}</div>
         ))}
       </div>

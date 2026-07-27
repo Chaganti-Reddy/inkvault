@@ -81,9 +81,10 @@ export default function FormPageLayer({ page, source, width, values, onSet, onCo
               checked={sel === wgt.exportValue} onChange={() => onSet(wgt.name, wgt.exportValue)} />;
           }
           if (wgt.type === 'Ch') {
-            const v = has(wgt.name) ? values[wgt.name] : wgt.fieldValue;
+            const raw = has(wgt.name) ? values[wgt.name] : wgt.fieldValue;
+            const v = Array.isArray(raw) ? (raw[0] || '') : (raw || '');
             return (
-              <select key={i} className="form-field" style={style} value={v || ''} onChange={(e) => onSet(wgt.name, e.target.value)}>
+              <select key={i} className="form-field" style={style} value={v} onChange={(e) => onSet(wgt.name, e.target.value)}>
                 <option value="" />
                 {(wgt.options || []).map((o, j) => <option key={j} value={o.exportValue}>{o.displayValue}</option>)}
               </select>

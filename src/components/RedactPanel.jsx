@@ -10,7 +10,7 @@ import { FiMousePointer, FiEyeOff, FiTrash2, FiSearch, LuShieldCheck } from '../
 // permanently removed. The banner makes that guarantee (and its trade-off) explicit.
 export default function RedactPanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, applyStamps } = usePdf();
+  const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, applyStamps, beginChange } = usePdf();
   const [tool, setTool] = useState('redact');
   const [sel, setSel] = useState(null);
   const [term, setTerm] = useState('');
@@ -96,6 +96,7 @@ export default function RedactPanel() {
               onSelect={(id) => setSel(id ? { pageId: pg.id, id } : null)}
               onAdd={(ann) => addAnnotation(pg.id, ann)}
               onUpdate={(id, patch) => updateAnnotation(pg.id, id, patch)}
+              onBeginChange={beginChange}
             />
           </div>
         ))}

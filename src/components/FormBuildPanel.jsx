@@ -7,7 +7,7 @@ import { FiMousePointer, FiType, FiCheckSquare, FiTrash2 } from '../ui/icons.js'
 // Draw fillable form fields onto pages. Each becomes a real AcroForm field on export.
 export default function FormBuildPanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, applyStamps } = usePdf();
+  const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, applyStamps, beginChange } = usePdf();
   const [tool, setTool] = useState('textfield');
   const [sel, setSel] = useState(null);
   const scrollRef = useRef(null);
@@ -66,6 +66,7 @@ export default function FormBuildPanel() {
               onSelect={(id) => setSel(id ? { pageId: pg.id, id } : null)}
               onAdd={(ann) => addAnnotation(pg.id, { ...ann, name: `${ann.fieldType === 'checkbox' ? 'Check' : 'Field'}${++counter.current}` })}
               onUpdate={(id, patch) => updateAnnotation(pg.id, id, patch)}
+              onBeginChange={beginChange}
             />
           </div>
         ))}

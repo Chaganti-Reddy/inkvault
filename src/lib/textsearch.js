@@ -1,3 +1,13 @@
+// Measure relative text widths with a canvas so sub-string boxes track real glyph
+// widths (variable-width fonts), not an even-character estimate. Ratios are scale-
+// invariant, so a fixed measuring size is fine.
+let measureCtx = null;
+function widthRatio(prefix, match, full) {
+  if (!measureCtx) { const c = document.createElement('canvas'); measureCtx = c.getContext('2d'); measureCtx.font = '32px sans-serif'; }
+  const total = measureCtx.measureText(full).width || 1;
+  return { start: measureCtx.measureText(prefix).width / total, span: measureCtx.measureText(match).width / total };
+}
+
 // Find every occurrence of `term` on a page and return boxes in normalized display
 // coordinates (0..1, top-left origin) — used to auto-mark redactions. Boxes are
 // padded slightly so descenders/ascenders are fully covered.
@@ -13,12 +23,12 @@ export async function findTextBoxes(doc, pageNumber, rotation, term) {
     const str = item.str;
     if (!str || !item.width) continue;
     const low = str.toLowerCase();
-    const len = str.length || 1;
     let idx = low.indexOf(needle);
     while (idx >= 0) {
       const h = item.height || Math.abs(item.transform[3]) || 10;
-      const x0 = item.transform[4] + (idx / len) * item.width;
-      const w = (needle.length / len) * item.width;
+      const r = widthRatio(str.slice(0, idx), str.slice(idx, idx + needle.length), str);
+      const x0 = item.transform[4] + r.start * item.width;
+      const w = r.span * item.width;
       const y0 = item.transform[5] - 0.2 * h;
       const yTop = item.transform[5] + h;
       const a = vp.convertToViewportPoint(x0, y0);

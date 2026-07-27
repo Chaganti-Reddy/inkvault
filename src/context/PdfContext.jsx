@@ -45,9 +45,11 @@ export function PdfProvider({ children }) {
   const [histVer, setHistVer] = useState(0);
   const bumpHist = useCallback(() => setHistVer((v) => v + 1), []);
 
+  const lastFormFieldRef = useRef(null); // for coalescing form-field keystrokes into one step
   const pushHistory = useCallback(() => {
     pastRef.current = [...pastRef.current.slice(-49), stateRef.current];
     futureRef.current = [];
+    lastFormFieldRef.current = null; // any non-typing action ends a typing run
     bumpHist();
   }, [bumpHist]);
   const clearHistory = useCallback(() => { pastRef.current = []; futureRef.current = []; bumpHist(); }, [bumpHist]);
@@ -84,7 +86,10 @@ export function PdfProvider({ children }) {
   }, []);
 
   const setFormValue = useCallback((srcKey, name, value) => {
-    pushHistory();
+    // Coalesce consecutive edits to the SAME field into one undo step (like typing a
+    // word in an editor); switching fields or doing anything else starts a new step.
+    const key = `${srcKey}/${name}`;
+    if (lastFormFieldRef.current !== key) { pushHistory(); lastFormFieldRef.current = key; }
     setFormValues((f) => ({ ...f, [srcKey]: { ...(f[srcKey] || {}), [name]: value } }));
     setDirty(true);
   }, [pushHistory]);
@@ -321,7 +326,7 @@ export function PdfProvider({ children }) {
     openFile, openBytes, mergeFile, importImages, insertBlankPage, rotatePages, deletePages, duplicatePages, reorderPages, close, applyEdits,
     annotations, addAnnotation, updateAnnotation, removeAnnotation, setOcrLayer, applyStamps, setPageCrop,
     formValues, setFormValue, metadata, setMetadata, pendingTool, setPendingTool,
-    undo, redo, canUndo, canRedo,
+    undo, redo, canUndo, canRedo, beginChange: pushHistory,
     numPages: pages.length,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

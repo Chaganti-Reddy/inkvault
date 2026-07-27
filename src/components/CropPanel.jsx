@@ -8,7 +8,7 @@ import { FiCrop, FiTrash2 } from '../ui/icons.js';
 // Applied as the page's CropBox on export.
 export default function CropPanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, setPageCrop } = usePdf();
+  const { pages, sources, annotations, setPageCrop, beginChange } = usePdf();
   const scrollRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(0);
 
@@ -49,6 +49,7 @@ export default function CropPanel() {
               onSelect={() => {}}
               onAdd={(ann) => setPageCrop(pg.id, { x: ann.x, y: ann.y, w: ann.w, h: ann.h })}
               onUpdate={() => {}}
+              onBeginChange={beginChange}
             />
           </div>
         ))}

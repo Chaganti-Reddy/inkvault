@@ -2,6 +2,12 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.7.2]
+
+- **Editor-grade undo** — moving or editing an annotation is now its own undo step (undo restores the position/text instead of deleting it), and typing in a form field collapses into a single step per field.
+- **Glyph-exact redact-by-search** — match boxes track real character widths (measured), not an even-width estimate.
+- Fixed a React warning when a dropdown field's value was an array.
+
 ## [1.7.1]
 
 - **Undo now covers Apply** — undo/redo snapshots the whole document, so any chain step (including baking edits with Apply) can be undone.
