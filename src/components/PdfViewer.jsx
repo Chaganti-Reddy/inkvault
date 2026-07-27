@@ -43,6 +43,7 @@ function Page({ page, source, displayNumber, width, items, onVisible }) {
 export default function PdfViewer({ pages, sources, annotations = {}, zoom = 1, onPageInView }) {
   const scrollRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(0);
+  const [current, setCurrent] = useState(1);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -57,20 +58,35 @@ export default function PdfViewer({ pages, sources, annotations = {}, zoom = 1, 
   }, []);
 
   const width = Math.max(120, baseWidth * zoom);
+  const onVisible = (n) => { setCurrent(n); onPageInView?.(n); };
+  const jump = (n) => {
+    const c = scrollRef.current;
+    const el = c?.querySelector(`.pdf-page[data-page="${n}"]`);
+    if (el) c.scrollTop += el.getBoundingClientRect().top - c.getBoundingClientRect().top - 12;
+  };
 
   return (
-    <div className="pdf-scroll" ref={scrollRef}>
-      {pages.map((pg, i) => (
-        <Page
-          key={pg.id}
-          page={pg}
-          source={sources[pg.srcKey]}
-          displayNumber={i + 1}
-          width={width}
-          items={annotations[pg.id]}
-          onVisible={onPageInView}
-        />
-      ))}
+    <div className="pdf-view-row">
+      {pages.length > 1 && (
+        <nav className="pdf-nav">
+          {pages.map((pg, i) => (
+            <button key={pg.id} className={`pdf-nav-btn ${current === i + 1 ? 'on' : ''}`} onClick={() => jump(i + 1)}>{i + 1}</button>
+          ))}
+        </nav>
+      )}
+      <div className="pdf-scroll" ref={scrollRef}>
+        {pages.map((pg, i) => (
+          <Page
+            key={pg.id}
+            page={pg}
+            source={sources[pg.srcKey]}
+            displayNumber={i + 1}
+            width={width}
+            items={annotations[pg.id]}
+            onVisible={onVisible}
+          />
+        ))}
+      </div>
     </div>
   );
 }

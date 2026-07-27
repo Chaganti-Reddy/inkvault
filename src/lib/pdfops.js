@@ -225,11 +225,23 @@ export function extractPdf(pages, sources, ids, annotations, formValues, metadat
 // Shrink a PDF by rendering every page to a JPEG at the given DPI/quality and
 // rebuilding as an image PDF. Big wins on scanned/image-heavy documents. Text
 // becomes non-selectable (run OCR first if searchability matters).
-export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65 } = {}) {
+function toGrayscale(canvas) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const a = img.data;
+  for (let i = 0; i < a.length; i += 4) {
+    const g = 0.299 * a[i] + 0.587 * a[i + 1] + 0.114 * a[i + 2];
+    a[i] = a[i + 1] = a[i + 2] = g;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65, grayscale = false } = {}) {
   const doc = await loadDocument(baseBytes.slice());
   const out = await PDFDocument.create();
   for (let i = 1; i <= doc.numPages; i++) {
     const { canvas, pointW, pointH } = await rasterizePage(doc, i, dpi, 0);
+    if (grayscale) toGrayscale(canvas);
     const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', quality)));
     const page = out.addPage([pointW, pointH]);
     page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });

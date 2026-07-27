@@ -144,6 +144,17 @@
 .page-indicator { color: var(--muted); font-size: 13px; }
 .zoom-val { font-size: 13px; color: var(--muted); min-width: 44px; text-align: center; }
 
+.pdf-view-row { display: flex; flex: 1; min-height: 0; }
+.pdf-nav {
+  flex: 0 0 52px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 6px; background: var(--surface); border-right: 1px solid var(--border);
+}
+.pdf-nav-btn {
+  border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--muted);
+  padding: 7px 0; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.pdf-nav-btn:hover { background: var(--surface2); color: var(--text); }
+.pdf-nav-btn.on { background: var(--accent-weak); color: var(--accent); border-color: var(--accent); }
 .pdf-scroll {
   flex: 1; overflow: auto; background: var(--bg);
   padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;

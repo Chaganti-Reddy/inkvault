@@ -18,8 +18,9 @@ function fmtSize(bytes) {
 
 export default function CompressPanel() {
   const { t } = useTranslation();
-  const { pages, sources, annotations, formValues, fileName } = usePdf();
+  const { pages, sources, annotations, formValues, metadata, fileName } = usePdf();
   const [level, setLevel] = useState('balanced');
+  const [grayscale, setGrayscale] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null); // { before, after, bytes }
   const [error, setError] = useState('');
@@ -28,8 +29,8 @@ export default function CompressPanel() {
     setBusy(true); setError(''); setResult(null);
     try {
       const opts = LEVELS.find((l) => l.key === level);
-      const base = await buildPdf(pages, sources, annotations, formValues);
-      const compressed = await compressBytes(base, opts);
+      const base = await buildPdf(pages, sources, annotations, formValues, metadata);
+      const compressed = await compressBytes(base, { ...opts, grayscale });
       setResult({ before: base.length, after: compressed.length, bytes: compressed });
     } catch (e) {
       setError(e?.message || String(e));
@@ -55,6 +56,10 @@ export default function CompressPanel() {
             </button>
           ))}
         </div>
+
+        <label className="restrict-row" style={{ justifyContent: 'center', marginBottom: '12px' }}>
+          <input type="checkbox" checked={grayscale} onChange={() => setGrayscale((g) => !g)} disabled={busy} /> {t('compress.grayscale')}
+        </label>
 
         <button className="btn primary" onClick={run} disabled={busy}>
           <FiMinimize2 /> {busy ? t('compress.working') : t('compress.run')}

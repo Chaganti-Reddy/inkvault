@@ -136,6 +136,7 @@
     "small": "Smallest",
     "smallDesc": "Maximum shrink",
     "run": "Compress",
+    "grayscale": "Convert to grayscale",
     "working": "Compressing…",
     "saved": "{{pct}}% smaller",
     "noGain": "Already small",
