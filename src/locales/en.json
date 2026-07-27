@@ -17,6 +17,10 @@
     "choose": "Choose a file",
     "chooseImages": "Images to PDF",
     "recent": "Recent",
+    "compressImages": "Compress images",
+    "compressing": "Compressing…",
+    "compressedToast": "Compressed {{n}} images, saved {{kb}} KB",
+    "scan": "Scan to PDF",
     "privacy": "Everything runs on your device. Your files are never uploaded.",
     "errorType": "That doesn't look like a PDF. Try another file.",
     "errorImage": "Those don't look like images. Try JPG or PNG files.",
@@ -53,6 +57,12 @@
   },
   "toast": {
     "saved": "Downloaded"
+  },
+  "scan": {
+    "title": "Scan to PDF",
+    "capture": "Capture page",
+    "create": "Create PDF ({{n}})",
+    "noCamera": "No camera available, or permission was denied."
   },
   "editor": {
     "undo": "Undo",

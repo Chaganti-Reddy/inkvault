@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../context/PdfContext.jsx';
 import { IMAGE_ACCEPT } from '../lib/images.js';
+import { compressImages } from '../lib/imagetools.js';
+import { downloadZip } from '../lib/zip.js';
+import { downloadBlob } from '../lib/pdfops.js';
+import { toast } from '../lib/toast.js';
+import ScanModal from '../components/ScanModal.jsx';
 import {
-  FiUpload, FiLayers, FiEdit3, FiEyeOff, FiSearch, FiType, FiLock, LuShieldCheck,
+  FiUpload, FiLayers, FiEdit3, FiEyeOff, FiSearch, FiType, FiLock, FiMinimize2, FiCamera, LuShieldCheck,
 } from '../ui/icons.js';
 // FiLock is used both in the feature grid and the unlock modal.
 
@@ -21,8 +26,26 @@ export default function Home() {
   const { openFile, importImages, error, loading, locked, unlocking, unlockWithPassword, cancelUnlock, setPendingTool } = usePdf();
   const inputRef = useRef(null);
   const imgRef = useRef(null);
+  const compressRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [pw, setPw] = useState('');
+  const [compressing, setCompressing] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
+
+  const compressPick = async (files) => {
+    setCompressing(true);
+    try {
+      const out = await compressImages([...files], { quality: 0.7, maxDim: 2000 });
+      if (out.length === 1) downloadBlob(out[0].blob, out[0].name);
+      else await downloadZip(out.map((o) => ({ name: o.name, data: o.blob })), 'compressed-images.zip');
+      const saved = out.reduce((a, o) => a + (o.before - o.after), 0);
+      toast(t('home.compressedToast', { n: out.length, kb: Math.max(0, Math.round(saved / 1024)) }));
+    } catch (e) {
+      toast(e?.message || String(e), 'error');
+    } finally {
+      setCompressing(false);
+    }
+  };
 
   useEffect(() => {
     if (!locked) return undefined;
@@ -93,11 +116,30 @@ export default function Home() {
           hidden
           onChange={(e) => e.target.files?.length && importImages(e.target.files)}
         />
+        <input
+          ref={compressRef}
+          type="file"
+          accept={IMAGE_ACCEPT}
+          multiple
+          hidden
+          onChange={(e) => { if (e.target.files?.length) compressPick(e.target.files); e.target.value = ''; }}
+        />
 
         {error && <div className="error">{error}</div>}
 
+        <div className="more-tools">
+          <button className="btn sm" type="button" onClick={() => compressRef.current?.click()} disabled={compressing}>
+            <FiMinimize2 /> {compressing ? t('home.compressing') : t('home.compressImages')}
+          </button>
+          <button className="btn sm" type="button" onClick={() => setScanOpen(true)}>
+            <FiCamera /> {t('home.scan')}
+          </button>
+        </div>
+
         <div className="privacy-line"><LuShieldCheck /> {t('home.privacy')}</div>
       </section>
+
+      {scanOpen && <ScanModal onClose={() => setScanOpen(false)} onDone={(files) => { setScanOpen(false); importImages(files); }} />}
 
       {locked && (
         <div className="modal-backdrop" onClick={cancelUnlock}>
