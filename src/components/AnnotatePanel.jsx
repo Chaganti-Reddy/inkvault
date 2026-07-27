@@ -20,7 +20,7 @@ const COLORS = ['#111111', '#e5484d', '#2f6feb', '#2f9e6d'];
 const STROKES = [0.003, 0.005, 0.009];
 const FONTS = [0.02, 0.03, 0.045];
 
-export default function AnnotatePanel() {
+export default function AnnotatePanel({ zoom = 1 }) {
   const { t } = useTranslation();
   const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, beginChange } = usePdf();
   const [tool, setTool] = useState('select');
@@ -35,7 +35,7 @@ export default function AnnotatePanel() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const measure = () => setBaseWidth(Math.min(1100, el.clientWidth - 48));
+    const measure = () => setBaseWidth(Math.min(1400, el.clientWidth - 48));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -83,7 +83,7 @@ export default function AnnotatePanel() {
     setTool('select');
   };
 
-  const width = Math.max(200, baseWidth);
+  const width = Math.max(200, baseWidth * zoom);
   const strokeW = STROKES[sizeIdx];
   const fontSize = FONTS[sizeIdx];
 

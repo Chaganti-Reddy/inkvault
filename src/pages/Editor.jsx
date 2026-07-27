@@ -20,6 +20,9 @@ import { buildPdf, downloadBytes, extractText, downloadText } from '../lib/pdfop
 import { toast } from '../lib/toast.js';
 import { FiZoomIn, FiZoomOut, FiMaximize, FiDownload, FiCornerUpLeft, FiCornerUpRight, FiFileText, FiCheck } from '../ui/icons.js';
 
+// Tools that render document pages — all share the zoom / fit-to-width control.
+const PAGE_TOOLS = ['view', 'annotate', 'crop', 'redact', 'forms', 'buildform'];
+
 export default function Editor() {
   const { t } = useTranslation();
   const { pages, sources, annotations, formValues, metadata, numPages, fileName, loading, dirty, undo, redo, canUndo, canRedo, pendingTool, setPendingTool, applyEdits } = usePdf();
@@ -92,12 +95,12 @@ export default function Editor() {
             {tool === 'view' && <span className="page-indicator">{t('viewer.page', { n: pageInView, total: numPages })}</span>}
           </div>
           <div className="toolbar-center">
-            {tool === 'view' && (
+            {PAGE_TOOLS.includes(tool) && (
               <>
-                <button className="icon-btn" onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))} aria-label={t('viewer.zoomOut')}><FiZoomOut /></button>
+                <button className="icon-btn" onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.15).toFixed(2)))} aria-label={t('viewer.zoomOut')}><FiZoomOut /></button>
                 <span className="zoom-val">{Math.round(zoom * 100)}%</span>
-                <button className="icon-btn" onClick={() => setZoom((z) => Math.min(3, z + 0.15))} aria-label={t('viewer.zoomIn')}><FiZoomIn /></button>
-                <button className="icon-btn" onClick={() => setZoom(1)} aria-label={t('viewer.fit')}><FiMaximize /></button>
+                <button className="icon-btn" onClick={() => setZoom((z) => Math.min(3, +(z + 0.15).toFixed(2)))} aria-label={t('viewer.zoomIn')}><FiZoomIn /></button>
+                <button className="icon-btn" onClick={() => setZoom(1)} aria-label={t('viewer.fit')} title={t('viewer.fit')}><FiMaximize /></button>
               </>
             )}
           </div>
@@ -116,11 +119,11 @@ export default function Editor() {
 
         {tool === 'view' && <PdfViewer pages={pages} sources={sources} annotations={annotations} zoom={zoom} onPageInView={setPageInView} />}
         {tool === 'organize' && <OrganizePanel />}
-        {tool === 'annotate' && <AnnotatePanel />}
-        {tool === 'crop' && <CropPanel />}
-        {tool === 'redact' && <RedactPanel />}
-        {tool === 'forms' && <FormsPanel />}
-        {tool === 'buildform' && <FormBuildPanel />}
+        {tool === 'annotate' && <AnnotatePanel zoom={zoom} />}
+        {tool === 'crop' && <CropPanel zoom={zoom} />}
+        {tool === 'redact' && <RedactPanel zoom={zoom} />}
+        {tool === 'forms' && <FormsPanel zoom={zoom} />}
+        {tool === 'buildform' && <FormBuildPanel zoom={zoom} />}
         {tool === 'stamp' && <StampPanel />}
         {tool === 'ocr' && <OcrPanel />}
         {tool === 'compress' && <CompressPanel />}

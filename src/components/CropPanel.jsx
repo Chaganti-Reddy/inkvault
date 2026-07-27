@@ -6,7 +6,7 @@ import { FiCrop, FiTrash2 } from '../ui/icons.js';
 
 // Draw a rectangle on a page to crop it to that area (one crop box per page).
 // Applied as the page's CropBox on export.
-export default function CropPanel() {
+export default function CropPanel({ zoom = 1 }) {
   const { t } = useTranslation();
   const { pages, sources, annotations, setPageCrop, beginChange } = usePdf();
   const scrollRef = useRef(null);
@@ -15,14 +15,14 @@ export default function CropPanel() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const measure = () => setBaseWidth(Math.min(1100, el.clientWidth - 48));
+    const measure = () => setBaseWidth(Math.min(1400, el.clientWidth - 48));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  const width = Math.max(200, baseWidth);
+  const width = Math.max(200, baseWidth * zoom);
   const count = Object.values(annotations).flat().filter((a) => a.type === 'crop').length;
   const clearAll = () => pages.forEach((p) => setPageCrop(p.id, null));
 

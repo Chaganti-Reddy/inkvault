@@ -163,7 +163,7 @@
 .nav-thumb.on .nav-thumb-num { color: var(--accent); }
 .pdf-scroll {
   flex: 1; overflow: auto; background: var(--bg);
-  padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding: 24px; display: flex; flex-direction: column; align-items: safe center; gap: 18px;
 }
 .pdf-page {
   position: relative; flex: 0 0 auto;
@@ -244,7 +244,7 @@
 .size-btn.on { border-color: var(--accent); color: var(--accent); }
 .anno-bar .spacer { flex: 1; }
 
-.anno-scroll { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px; background: var(--bg); }
+.anno-scroll { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; align-items: safe center; gap: 18px; background: var(--bg); }
 .anno-page-wrap { position: relative; flex: 0 0 auto; }
 .anno-page { position: relative; background: #fff; box-shadow: var(--shadow); border-radius: 4px; }
 .anno-surface { position: absolute; inset: 0; touch-action: none; }

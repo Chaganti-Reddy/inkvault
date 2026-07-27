@@ -4,7 +4,7 @@ import { usePdf } from '../context/PdfContext.jsx';
 import FormPageLayer from './FormPageLayer.jsx';
 import { FiType } from '../ui/icons.js';
 
-export default function FormsPanel() {
+export default function FormsPanel({ zoom = 1 }) {
   const { t } = useTranslation();
   const { pages, sources, formValues, setFormValue } = usePdf();
   const scrollRef = useRef(null);
@@ -15,14 +15,14 @@ export default function FormsPanel() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const measure = () => setBaseWidth(Math.min(1100, el.clientWidth - 48));
+    const measure = () => setBaseWidth(Math.min(1400, el.clientWidth - 48));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  const width = Math.max(200, baseWidth);
+  const width = Math.max(200, baseWidth * zoom);
 
   const noteCount = useCallback((pageId, n) => {
     counts.current[pageId] = n;

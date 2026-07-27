@@ -2,6 +2,10 @@
 
 All notable changes to InkVault are documented here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.8.0]
+
+- **Zoom everywhere** — the zoom in/out and fit-to-width controls now work in every page tool (Annotate, Crop, Redact, Fill forms and Build form), not just View. Pages auto-fit the window on open and scroll horizontally when zoomed past the edge.
+
 ## [1.7.4]
 
 - **Thumbnail nav** — the View tab side rail now shows real page previews instead of plain numbers.

@@ -8,7 +8,7 @@ import { FiMousePointer, FiEyeOff, FiTrash2, FiSearch, LuShieldCheck } from '../
 // Redaction is destructive: on export, any page carrying a redaction box is
 // rasterized and the boxes are painted over the pixels, so the hidden content is
 // permanently removed. The banner makes that guarantee (and its trade-off) explicit.
-export default function RedactPanel() {
+export default function RedactPanel({ zoom = 1 }) {
   const { t } = useTranslation();
   const { pages, sources, annotations, addAnnotation, updateAnnotation, removeAnnotation, applyStamps, beginChange } = usePdf();
   const [tool, setTool] = useState('redact');
@@ -35,7 +35,7 @@ export default function RedactPanel() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const measure = () => setBaseWidth(Math.min(1100, el.clientWidth - 48));
+    const measure = () => setBaseWidth(Math.min(1400, el.clientWidth - 48));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -52,7 +52,7 @@ export default function RedactPanel() {
     return () => window.removeEventListener('keydown', onKey);
   }, [sel, removeAnnotation]);
 
-  const width = Math.max(200, baseWidth);
+  const width = Math.max(200, baseWidth * zoom);
   const count = Object.values(annotations).flat().filter((a) => a.type === 'redact').length;
 
   return (
