@@ -31,6 +31,7 @@ export default function AnnotatePanel({ zoom = 1 }) {
   const scrollRef = useRef(null);
   const [baseWidth, setBaseWidth] = useState(0);
   const currentPage = useRef(pages[0]?.id);
+  const clipboardRef = useRef(null); // copied annotation (no id)
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -66,13 +67,37 @@ export default function AnnotatePanel({ zoom = 1 }) {
     if (sel && !(annotations[sel.pageId] || []).some((a) => a.id === sel.id)) setSel(null);
   }, [annotations, sel]);
 
-  // Keyboard: delete removes the selection; arrows nudge it (Shift = larger step).
+  // A copy of an annotation shifted by (dx,dy), with its id stripped so addAnnotation
+  // assigns a fresh one. Handles every geometry (box/text/image, line/arrow, pen).
+  const offsetAnn = (ann, dx, dy) => {
+    const { id, ...rest } = ann; // eslint-disable-line no-unused-vars
+    if (ann.type === 'line' || ann.type === 'arrow') return { ...rest, x0: ann.x0 + dx, y0: ann.y0 + dy, x1: ann.x1 + dx, y1: ann.y1 + dy };
+    if (ann.type === 'draw') return { ...rest, points: ann.points.map((p) => ({ x: p.x + dx, y: p.y + dy })) };
+    return { ...rest, x: (ann.x || 0) + dx, y: (ann.y || 0) + dy };
+  };
+
+  // Keyboard: delete/nudge the selection, and duplicate/copy/paste (Ctrl/Cmd+D/C/V).
   // Ignored while editing text or focused in an input.
   useEffect(() => {
     const onKey = (e) => {
-      if (!sel) return;
       const el = document.activeElement;
       if (el?.isContentEditable || el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA') return;
+      const mod = e.ctrlKey || e.metaKey;
+      const selAnn = sel ? (annotations[sel.pageId] || []).find((a) => a.id === sel.id) : null;
+      if (mod && e.key.toLowerCase() === 'c') { if (selAnn) clipboardRef.current = { ...selAnn }; return; }
+      if (mod && e.key.toLowerCase() === 'd' && selAnn) {
+        e.preventDefault(); beginChange();
+        const id = addAnnotation(sel.pageId, offsetAnn(selAnn, 0.02, 0.02));
+        setSel({ pageId: sel.pageId, id }); return;
+      }
+      if (mod && e.key.toLowerCase() === 'v' && clipboardRef.current) {
+        e.preventDefault(); beginChange();
+        const pageId = sel?.pageId || currentPage.current || pages[0]?.id;
+        if (!pageId) return;
+        const id = addAnnotation(pageId, offsetAnn(clipboardRef.current, 0.02, 0.02));
+        setSel({ pageId, id }); return;
+      }
+      if (!sel) return;
       if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeAnnotation(sel.pageId, sel.id); setSel(null); return; }
       if (e.key === 'Escape') { setSel(null); return; }
       const step = (e.shiftKey ? 0.02 : 0.005) * (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1);
@@ -94,7 +119,7 @@ export default function AnnotatePanel({ zoom = 1 }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [sel, removeAnnotation, annotations, beginChange, updateAnnotation]);
+  }, [sel, removeAnnotation, annotations, beginChange, updateAnnotation, addAnnotation, pages]);
 
   // Apply a color / stroke / font change to the selected annotation too, so the
   // toolbar edits the current object (Adobe-style), not just future ones.

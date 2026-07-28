@@ -6,6 +6,21 @@ const BOX_TYPES = ['highlight', 'rect', 'redact', 'whiteout', 'ellipse', 'crop',
 const HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 const clamp01 = (n) => Math.min(1, Math.max(0, n));
 
+// Shift-constrain the moving corner/endpoint of an in-progress draft: lines/arrows
+// snap to the nearest 45°, boxes/ellipses become square/circular. Computed in pixel
+// space (W,H are the displayed page dimensions) so the result is visually square /
+// truly 45°, then converted back to normalized coordinates.
+function constrainDraft(type, x0, y0, x, y, W, H) {
+  const dxp = (x - x0) * W, dyp = (y - y0) * H;
+  if (type === 'line' || type === 'arrow') {
+    const len = Math.hypot(dxp, dyp);
+    const snap = Math.round(Math.atan2(dyp, dxp) / (Math.PI / 4)) * (Math.PI / 4);
+    return { x: clamp01(x0 + (len * Math.cos(snap)) / W), y: clamp01(y0 + (len * Math.sin(snap)) / H) };
+  }
+  const s = Math.max(Math.abs(dxp), Math.abs(dyp));
+  return { x: clamp01(x0 + (Math.sign(dxp || 1) * s) / W), y: clamp01(y0 + (Math.sign(dyp || 1) * s) / H) };
+}
+
 // Renders one page plus an interactive overlay. Annotations are stored in
 // normalized 0..1 coordinates (top-left origin) relative to the displayed page,
 // so they survive zoom and map cleanly onto the exported PDF. Shapes render in a
@@ -72,8 +87,10 @@ export default function AnnotateLayer({
   const onSurfaceMove = (e) => {
     if (!draft) return;
     const p = rel(e);
-    if (draft.type === 'draw') setDraft((d) => ({ ...d, points: [...d.points, p] }));
-    else setDraft((d) => ({ ...d, x: p.x, y: p.y }));
+    if (draft.type === 'draw') { setDraft((d) => ({ ...d, points: [...d.points, p] })); return; }
+    // Hold Shift to constrain (45° lines, square boxes / circles).
+    const c = e.shiftKey ? constrainDraft(draft.type, draft.x0, draft.y0, p.x, p.y, size.w, size.h) : p;
+    setDraft((d) => ({ ...d, x: c.x, y: c.y }));
   };
 
   const onSurfaceUp = () => {
