@@ -34,7 +34,7 @@ export default function FormPageLayer({ page, source, width, values, onSet, onCo
 
         const anns = await pdfPage.getAnnotations({ intent: 'display' });
         if (cancelled) return;
-        const list = anns.filter((a) => a.subtype === 'Widget' && a.fieldType).map((a) => {
+        const list = anns.filter((a) => a.subtype === 'Widget' && a.fieldType && !a.hidden).map((a) => {
           // pdf.js v6 dropped convertToViewportRectangle — map two opposite corners.
           const p1 = viewport.convertToViewportPoint(a.rect[0], a.rect[1]);
           const p2 = viewport.convertToViewportPoint(a.rect[2], a.rect[3]);
@@ -47,6 +47,12 @@ export default function FormPageLayer({ page, source, width, values, onSet, onCo
             fieldValue: a.fieldValue,
             multiline: a.multiLine,
             options: a.options,
+            readOnly: a.readOnly,
+            required: a.required,
+            password: a.password,
+            maxLen: a.maxLen || undefined,
+            combo: a.combo,
+            multiSelect: a.multiSelect,
             left: Math.min(p1[0], p2[0]), top: Math.min(p1[1], p2[1]),
             w: Math.abs(p2[0] - p1[0]), h: Math.abs(p2[1] - p1[1]),
           };
@@ -64,29 +70,53 @@ export default function FormPageLayer({ page, source, width, values, onSet, onCo
       <canvas ref={canvasRef} className="pdf-canvas" />
       <div className="form-overlay" style={{ width: size.w, height: size.h }}>
         {widgets.map((wgt, i) => {
+          const key = `${wgt.name || 'f'}-${i}`;
           const style = { left: wgt.left, top: wgt.top, width: wgt.w, height: wgt.h };
+          const cls = `form-field${wgt.required ? ' required' : ''}`;
+          const ro = wgt.readOnly;
           if (wgt.type === 'Tx') {
             const v = has(wgt.name) ? values[wgt.name] : (wgt.fieldValue || '');
             return wgt.multiline
-              ? <textarea key={i} className="form-field" style={style} value={v} onChange={(e) => onSet(wgt.name, e.target.value)} />
-              : <input key={i} className="form-field" style={style} value={v} onChange={(e) => onSet(wgt.name, e.target.value)} />;
+              ? <textarea key={key} className={cls} style={style} value={v} disabled={ro} maxLength={wgt.maxLen} required={wgt.required} onChange={(e) => onSet(wgt.name, e.target.value)} />
+              : <input key={key} type={wgt.password ? 'password' : 'text'} className={cls} style={style} value={v} disabled={ro} maxLength={wgt.maxLen} required={wgt.required} onChange={(e) => onSet(wgt.name, e.target.value)} />;
           }
           if (wgt.type === 'Btn' && wgt.checkBox) {
             const v = has(wgt.name) ? values[wgt.name] : (wgt.fieldValue && wgt.fieldValue !== 'Off');
-            return <input key={i} type="checkbox" className="form-check" style={style} checked={!!v} onChange={(e) => onSet(wgt.name, e.target.checked)} />;
+            return <input key={key} type="checkbox" className="form-check" style={style} checked={!!v} disabled={ro} onChange={(e) => onSet(wgt.name, e.target.checked)} />;
           }
           if (wgt.type === 'Btn' && wgt.radio) {
             const sel = has(wgt.name) ? values[wgt.name] : wgt.fieldValue;
-            return <input key={i} type="radio" name={wgt.name} className="form-check" style={style}
-              checked={sel === wgt.exportValue} onChange={() => onSet(wgt.name, wgt.exportValue)} />;
+            return <input key={key} type="radio" name={wgt.name} className="form-check" style={style}
+              checked={sel === wgt.exportValue} disabled={ro} onChange={() => onSet(wgt.name, wgt.exportValue)} />;
           }
           if (wgt.type === 'Ch') {
             const raw = has(wgt.name) ? values[wgt.name] : wgt.fieldValue;
+            const opts = wgt.options || [];
+            // Editable combo box: free-typed value plus option suggestions.
+            if (wgt.combo) {
+              const v = Array.isArray(raw) ? (raw[0] || '') : (raw || '');
+              return (
+                <span key={key}>
+                  <input className={cls} style={style} list={`${key}-opts`} value={v} disabled={ro} onChange={(e) => onSet(wgt.name, e.target.value)} />
+                  <datalist id={`${key}-opts`}>{opts.map((o, j) => <option key={j} value={o.exportValue}>{o.displayValue}</option>)}</datalist>
+                </span>
+              );
+            }
+            // Multi-select listbox: value is an array of export values.
+            if (wgt.multiSelect) {
+              const arr = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+              return (
+                <select key={key} multiple className={cls} style={style} value={arr} disabled={ro}
+                  onChange={(e) => onSet(wgt.name, Array.from(e.target.selectedOptions, (o) => o.value))}>
+                  {opts.map((o, j) => <option key={j} value={o.exportValue}>{o.displayValue}</option>)}
+                </select>
+              );
+            }
             const v = Array.isArray(raw) ? (raw[0] || '') : (raw || '');
             return (
-              <select key={i} className="form-field" style={style} value={v} onChange={(e) => onSet(wgt.name, e.target.value)}>
+              <select key={key} className={cls} style={style} value={v} disabled={ro} onChange={(e) => onSet(wgt.name, e.target.value)}>
                 <option value="" />
-                {(wgt.options || []).map((o, j) => <option key={j} value={o.exportValue}>{o.displayValue}</option>)}
+                {opts.map((o, j) => <option key={j} value={o.exportValue}>{o.displayValue}</option>)}
               </select>
             );
           }

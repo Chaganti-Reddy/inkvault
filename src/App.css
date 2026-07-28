@@ -270,6 +270,9 @@
 .anno-text.sel { box-shadow: 0 0 0 1.5px var(--accent); border-radius: 2px; }
 .anno-img { position: absolute; cursor: move; }
 .anno-img.sel { box-shadow: 0 0 0 2px var(--accent); }
+.field-name-edit { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.field-name-edit input { padding: 5px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 13px; min-width: 160px; }
+.form-field.required { box-shadow: inset 0 0 0 1.5px #e5a23d; }
 
 /* ---------- modal + signature ---------- */
 .modal-backdrop {

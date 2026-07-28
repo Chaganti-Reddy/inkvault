@@ -182,6 +182,7 @@
     "text": "Text field",
     "checkbox": "Checkbox",
     "note": "Draw fillable fields on the pages. ({{count}} added)",
+    "fieldName": "Field name",
     "clear": "Clear fields"
   },
   "crop": {

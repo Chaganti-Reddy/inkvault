@@ -24,6 +24,19 @@ export default function FormBuildPanel({ zoom = 1 }) {
     return () => ro.disconnect();
   }, []);
 
+  // Seed the auto-name counter past any fields already on the pages, so re-entering
+  // the tool doesn't restart at Field1 and collide with existing names.
+  useEffect(() => {
+    let max = 0;
+    for (const a of Object.values(annotations).flat()) {
+      const m = /(\d+)$/.exec(a?.name || '');
+      if (a?.type === 'field' && m) max = Math.max(max, Number(m[1]));
+    }
+    counter.current = Math.max(counter.current, max);
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const onKey = (e) => {
       if (!sel || document.activeElement?.isContentEditable) return;
@@ -36,6 +49,7 @@ export default function FormBuildPanel({ zoom = 1 }) {
 
   const width = Math.max(200, baseWidth * zoom);
   const count = Object.values(annotations).flat().filter((a) => a.type === 'field').length;
+  const selAnn = sel ? (annotations[sel.pageId] || []).find((a) => a.id === sel.id) : null;
 
   return (
     <div className="annotate">
@@ -45,7 +59,15 @@ export default function FormBuildPanel({ zoom = 1 }) {
           <button className={`anno-tool ${tool === 'textfield' ? 'on' : ''}`} title={t('build.text')} onClick={() => setTool('textfield')}><FiType /></button>
           <button className={`anno-tool ${tool === 'checkbox' ? 'on' : ''}`} title={t('build.checkbox')} onClick={() => setTool('checkbox')}><FiCheckSquare /></button>
         </div>
-        <div className="redact-note">{t('build.note', { count })}</div>
+        {selAnn ? (
+          <label className="field-name-edit">
+            {t('build.fieldName')}
+            <input type="text" value={selAnn.name || ''} onFocus={() => beginChange()}
+              onChange={(e) => updateAnnotation(sel.pageId, sel.id, { name: e.target.value })} />
+          </label>
+        ) : (
+          <div className="redact-note">{t('build.note', { count })}</div>
+        )}
         <div className="spacer" />
         {count > 0 && <button className="btn sm" onClick={() => applyStamps('field', {})}><FiTrash2 /> {t('build.clear')}</button>}
       </div>
