@@ -1,6 +1,6 @@
 // Rebuilds real PDF bytes from the page-model using pdf-lib. Everything runs in
 // the browser; no bytes are ever sent anywhere.
-import { PDFDocument, StandardFonts, degrees, rgb } from '@cantoo/pdf-lib';
+import { PDFDocument, StandardFonts, degrees, rgb, PDFName, PDFRawStream } from '@cantoo/pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { rasterizePage, loadDocument } from './pdfview.js';
 import { bakeForm } from './forms.js';
@@ -280,10 +280,6 @@ export function extractPdf(pages, sources, ids, annotations, formValues, metadat
   return buildFrom(pages.filter((p) => set.has(p.id)), sources, annotations, formValues, metadata);
 }
 
-// Shrink a PDF. Renders each page to JPEG at the given DPI/quality (big wins on
-// scans), but returns whichever is smaller — the rasterized version or the original
-// re-saved — so text PDFs keep their selectable text and the file never grows.
-// Grayscale forces the rasterized path.
 function toGrayscale(canvas) {
   const ctx = canvas.getContext('2d');
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -295,19 +291,90 @@ function toGrayscale(canvas) {
   ctx.putImageData(img, 0, 0);
 }
 
-export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65, grayscale = false } = {}) {
-  const doc = await loadDocument(baseBytes.slice());
-  const out = await PDFDocument.create();
-  for (let i = 1; i <= doc.numPages; i++) {
-    const { canvas, pointW, pointH } = await rasterizePage(doc, i, dpi, 0);
-    if (grayscale) toGrayscale(canvas);
-    const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', quality)));
-    const page = out.addPage([pointW, pointH]);
-    page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
+// Decode a raw JPEG byte stream, optionally downscale to `maxDim` and/or convert to
+// grayscale, and re-encode as JPEG. Returns { bytes, width, height } or null if the
+// re-encode wasn't smaller (so we never bloat a stream). Browser-only (uses canvas).
+async function recompressJpeg(raw, { maxDim, quality, grayscale }) {
+  const bitmap = await createImageBitmap(new Blob([raw], { type: 'image/jpeg' }));
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close?.();
+  if (grayscale) toGrayscale(canvas);
+  const out = dataUrlToBytes(canvas.toDataURL('image/jpeg', quality));
+  return out.length < raw.length ? { bytes: out, width: w, height: h } : null;
+}
+
+// Text-preserving optimization: walk the object graph and recompress embedded JPEG
+// (DCTDecode) image XObjects in place, leaving text and vector content untouched.
+// Skips images with a soft mask, indexed/other colour spaces or that are stencil
+// masks, to avoid corrupting them. Returns re-saved bytes (object streams on).
+async function reoptimizeImages(baseBytes, { maxDim = 1600, quality = 0.6, grayscale = false } = {}) {
+  const doc = await PDFDocument.load(baseBytes, { ignoreEncryption: true });
+  const ctx = doc.context;
+  const nameEq = (v, s) => v && v.toString() === s;
+  for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
+    if (!(obj instanceof PDFRawStream)) continue;
+    const d = obj.dict;
+    if (!nameEq(d.get(PDFName.of('Subtype')), '/Image')) continue;
+    if (!nameEq(d.get(PDFName.of('Filter')), '/DCTDecode')) continue; // only JPEG streams
+    if (d.get(PDFName.of('SMask')) || d.get(PDFName.of('Mask'))) continue; // keep masked images intact
+    if (d.get(PDFName.of('ImageMask'))) continue;
+    const cs = d.get(PDFName.of('ColorSpace'));
+    const gray = grayscale || nameEq(cs, '/DeviceGray');
+    if (!(nameEq(cs, '/DeviceRGB') || nameEq(cs, '/DeviceGray'))) continue; // skip CMYK/indexed/ICC
+    let res;
+    try { res = await recompressJpeg(obj.contents, { maxDim, quality, grayscale: gray }); }
+    catch { res = null; }
+    if (!res) continue;
+    const nd = ctx.obj({});
+    nd.set(PDFName.of('Type'), PDFName.of('XObject'));
+    nd.set(PDFName.of('Subtype'), PDFName.of('Image'));
+    nd.set(PDFName.of('Width'), ctx.obj(res.width));
+    nd.set(PDFName.of('Height'), ctx.obj(res.height));
+    nd.set(PDFName.of('ColorSpace'), PDFName.of(gray ? 'DeviceGray' : 'DeviceRGB'));
+    nd.set(PDFName.of('BitsPerComponent'), ctx.obj(8));
+    nd.set(PDFName.of('Filter'), PDFName.of('DCTDecode'));
+    ctx.assign(ref, PDFRawStream.of(nd, res.bytes));
   }
-  const raster = await out.save();
-  // Keep whichever is smaller; grayscale is an explicit visual choice, so honor it.
-  return (!grayscale && baseBytes.length <= raster.length) ? baseBytes : raster;
+  return doc.save({ useObjectStreams: true });
+}
+
+// Shrink a PDF. Produces up to three candidates and returns the smallest:
+//   1. text-preserving image recompression (recompress embedded JPEGs, keep text),
+//   2. full rasterization (each page → JPEG; big wins on scans),
+//   3. the original re-saved (only when not forcing grayscale).
+// The result keeps selectable text whenever the text-preserving path wins, and is
+// never larger than the original. Grayscale forces a grayscale result.
+export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65, grayscale = false } = {}) {
+  const candidates = [];
+  // 1) text-preserving image recompression
+  try {
+    const reopt = await reoptimizeImages(baseBytes.slice(), { maxDim: Math.max(800, dpi * 11), quality, grayscale });
+    if (reopt?.length) candidates.push(reopt);
+  } catch { /* fall back to raster/base */ }
+  // 2) full rasterization
+  try {
+    const doc = await loadDocument(baseBytes.slice());
+    const out = await PDFDocument.create();
+    for (let i = 1; i <= doc.numPages; i++) {
+      const { canvas, pointW, pointH } = await rasterizePage(doc, i, dpi, 0);
+      if (grayscale) toGrayscale(canvas);
+      const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', quality)));
+      const page = out.addPage([pointW, pointH]);
+      page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
+    }
+    candidates.push(await out.save());
+  } catch { /* raster unavailable */ }
+  // 3) original (only when grayscale isn't requested — grayscale must change pixels)
+  if (!grayscale) candidates.push(baseBytes);
+
+  candidates.sort((a, b) => a.length - b.length);
+  return candidates[0] || baseBytes;
 }
 
 // Extract all selectable text from the edited document (reflects reorder, redaction
