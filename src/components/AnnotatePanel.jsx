@@ -61,6 +61,11 @@ export default function AnnotatePanel({ zoom = 1 }) {
     return () => el.removeEventListener('scroll', onScroll);
   }, [pages]);
 
+  // Drop a selection that no longer exists (e.g. after undo removed the annotation).
+  useEffect(() => {
+    if (sel && !(annotations[sel.pageId] || []).some((a) => a.id === sel.id)) setSel(null);
+  }, [annotations, sel]);
+
   // Keyboard: delete removes the selection; arrows nudge it (Shift = larger step).
   // Ignored while editing text or focused in an input.
   useEffect(() => {

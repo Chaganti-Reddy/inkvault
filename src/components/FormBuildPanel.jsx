@@ -39,13 +39,18 @@ export default function FormBuildPanel({ zoom = 1 }) {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (!sel || document.activeElement?.isContentEditable) return;
+      if (!sel || document.activeElement?.isContentEditable || document.activeElement?.tagName === 'INPUT') return;
       if (e.key === 'Delete' || e.key === 'Backspace') { removeAnnotation(sel.pageId, sel.id); setSel(null); }
       if (e.key === 'Escape') setSel(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [sel, removeAnnotation]);
+
+  // Drop a selection that no longer exists (e.g. after undo, or Clear fields).
+  useEffect(() => {
+    if (sel && !(annotations[sel.pageId] || []).some((a) => a.id === sel.id)) setSel(null);
+  }, [annotations, sel]);
 
   const width = Math.max(200, baseWidth * zoom);
   const count = Object.values(annotations).flat().filter((a) => a.type === 'field').length;

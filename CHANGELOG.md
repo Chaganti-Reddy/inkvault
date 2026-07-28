@@ -4,7 +4,9 @@ All notable changes to InkVault are documented here. This project adheres to [Se
 
 ## [1.9.0]
 
-- **Smarter compression (re-optimization)** — compression now also tries a text-preserving pass that recompresses and downscales the embedded JPEG images inside a PDF while leaving the text and vector content untouched, and keeps whichever of that, full rasterization or the original is smallest. Image-heavy documents shrink without losing selectable text; masked and CMYK images are left intact to avoid corruption.
+- **Smarter compression (re-optimization)** — compression now recompresses and downscales the embedded JPEG images inside a PDF while leaving text and vector content untouched, and never rasterizes a document that has selectable text (so text PDFs keep their text). Only true scans are re-rendered as images. Masked and CMYK images are left intact to avoid corruption, and the result is never larger than the original.
+- **Smaller exports** — the Unicode font is only embedded when the document actually draws text, watermarks or page numbers, so plain, redacted and form-only exports no longer carry unused font data.
+- **Better form filling** — read-only fields are shown locked, text fields honour their maximum length, required fields are marked, password fields are masked, and combo boxes, multi-select list boxes and dropdowns each behave correctly. Drawn fields can be given a name in the toolbar.
 - **Annotations reworked** — every object (including pen strokes, lines and arrows) can now be selected, moved, nudged with the arrow keys and resized with handles; lines and arrows have draggable endpoints and signatures resize with a locked aspect ratio. Changing the colour or size while something is selected edits that object, not just the next one.
 - **Correct stacking** — annotations now paint on screen in the same order they export, so what you see is what you get.
 - **Highlighter colours** — the highlighter respects the chosen colour (with a one-click yellow), and each arrow keeps its own colour in every view.

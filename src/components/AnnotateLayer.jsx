@@ -101,26 +101,25 @@ export default function AnnotateLayer({
   };
 
   // --- move / resize existing annotation (select tool) ---
+  // History is snapshotted on the FIRST actual movement (see onMoveDrag), not on
+  // pointer-down, so clicking to select doesn't create a spurious undo step.
   const startMove = (e, item) => {
     if (tool !== 'select') { e.stopPropagation(); return; } // don't let create-tools spawn a duplicate underneath
     e.stopPropagation();
     onSelect(item.id);
-    onBeginChange?.(); // one history snapshot per gesture
-    dragRef.current = { mode: 'move', id: item.id, start: rel(e), snap: { ...item, points: item.points ? item.points.map((p) => ({ ...p })) : undefined } };
+    dragRef.current = { mode: 'move', id: item.id, start: rel(e), began: false, snap: { ...item, points: item.points ? item.points.map((p) => ({ ...p })) : undefined } };
     surfRef.current.setPointerCapture(e.pointerId);
   };
   const startResize = (e, item, handle) => {
     e.stopPropagation();
     onSelect(item.id);
-    onBeginChange?.();
-    dragRef.current = { mode: item.type === 'image' ? 'image' : 'resize', id: item.id, handle, start: rel(e), snap: { ...item } };
+    dragRef.current = { mode: item.type === 'image' ? 'image' : 'resize', id: item.id, handle, start: rel(e), began: false, snap: { ...item } };
     surfRef.current.setPointerCapture(e.pointerId);
   };
   const startEndpoint = (e, item, which) => {
     e.stopPropagation();
     onSelect(item.id);
-    onBeginChange?.();
-    dragRef.current = { mode: 'endpoint', id: item.id, which, start: rel(e), snap: { ...item } };
+    dragRef.current = { mode: 'endpoint', id: item.id, which, start: rel(e), began: false, snap: { ...item } };
     surfRef.current.setPointerCapture(e.pointerId);
   };
 
@@ -129,6 +128,11 @@ export default function AnnotateLayer({
     if (!d) { onSurfaceMove(e); return; }
     const p = rel(e);
     const dx = p.x - d.start.x, dy = p.y - d.start.y;
+    if (!d.began) {
+      if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) return; // ignore jitter; wait for a real move
+      onBeginChange?.(); // one history snapshot per gesture, on first real movement
+      d.began = true;
+    }
     const s = d.snap;
     if (d.mode === 'move') {
       if (s.type === 'line' || s.type === 'arrow') {

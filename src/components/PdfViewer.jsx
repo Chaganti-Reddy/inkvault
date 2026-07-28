@@ -21,15 +21,16 @@ function Page({ page, source, displayNumber, width, items, onVisible }) {
   }, [displayNumber, onVisible]);
 
   useEffect(() => {
-    if (!seen || !width || !source) return;
+    if (!seen || !width || !source) return undefined;
     let cancelled = false;
+    let task = null;
     (async () => {
       try {
-        const dim = await renderPage(source.doc, page.index + 1, width, canvasRef.current, page.rotation);
+        const dim = await renderPage(source.doc, page.index + 1, width, canvasRef.current, page.rotation, (rt) => { task = rt; });
         if (!cancelled) setSize({ w: dim.width, h: dim.height });
       } catch { /* render can be cancelled on fast scroll/zoom; ignore */ }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; try { task?.cancel(); } catch { /* already done */ } };
   }, [seen, width, source, page.index, page.rotation]);
 
   return (
