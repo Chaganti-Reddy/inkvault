@@ -187,7 +187,11 @@ function applyMetadata(out, meta = {}) {
 async function buildFrom(items, sources, annotations = {}, formValues = {}, metadata = {}) {
   const out = await PDFDocument.create();
   applyMetadata(out, metadata);
-  const font = await embedTextFont(out);
+  // Only embed the (large) Unicode font when the document actually draws text-like
+  // content; otherwise use standard Helvetica (not embedded) so plain/redacted/form
+  // exports don't carry ~190 KB of unused font data.
+  const needsUnicode = Object.values(annotations).flat().some((a) => ['text', 'watermark', 'pagenum', 'otext'].includes(a.type));
+  const font = needsUnicode ? await embedTextFont(out) : await out.embedFont(StandardFonts.Helvetica);
   const load = sourceLoader(sources, formValues);
   const usedFieldNames = new Set();
   const uniqueName = (n) => {
@@ -344,33 +348,55 @@ async function reoptimizeImages(baseBytes, { maxDim = 1600, quality = 0.6, grays
   return doc.save({ useObjectStreams: true });
 }
 
-// Shrink a PDF. Produces up to three candidates and returns the smallest:
-//   1. text-preserving image recompression (recompress embedded JPEGs, keep text),
-//   2. full rasterization (each page → JPEG; big wins on scans),
-//   3. the original re-saved (only when not forcing grayscale).
-// The result keeps selectable text whenever the text-preserving path wins, and is
-// never larger than the original. Grayscale forces a grayscale result.
+// Does any page carry selectable text? Used to keep compression from rasterizing
+// (and thereby destroying) a real text document.
+async function hasSelectableText(bytes) {
+  try {
+    const doc = await loadDocument(bytes.slice());
+    for (let i = 1; i <= doc.numPages; i++) {
+      const tc = await (await doc.getPage(i)).getTextContent();
+      if (tc.items.some((it) => (it.str || '').trim().length)) return true;
+    }
+  } catch { /* treat as no text */ }
+  return false;
+}
+
+// Shrink a PDF while never destroying selectable text.
+//   - text-preserving image recompression: recompress embedded JPEGs, keep text/vectors,
+//   - full rasterization: each page → JPEG (big wins on scans),
+//   - the original re-saved.
+// If the document has selectable text, rasterization is excluded entirely — the result
+// keeps its text (recompressed-images or original, whichever is smaller; grayscale uses
+// the recompressed-images path). Only true image/scan PDFs are rasterized. The result is
+// never larger than the input.
 export async function compressBytes(baseBytes, { dpi = 110, quality = 0.65, grayscale = false } = {}) {
+  const keepText = await hasSelectableText(baseBytes);
   const candidates = [];
-  // 1) text-preserving image recompression
+
+  // text-preserving image recompression (recompress embedded JPEGs; text/vectors intact)
   try {
     const reopt = await reoptimizeImages(baseBytes.slice(), { maxDim: Math.max(800, dpi * 11), quality, grayscale });
     if (reopt?.length) candidates.push(reopt);
-  } catch { /* fall back to raster/base */ }
-  // 2) full rasterization
-  try {
-    const doc = await loadDocument(baseBytes.slice());
-    const out = await PDFDocument.create();
-    for (let i = 1; i <= doc.numPages; i++) {
-      const { canvas, pointW, pointH } = await rasterizePage(doc, i, dpi, 0);
-      if (grayscale) toGrayscale(canvas);
-      const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', quality)));
-      const page = out.addPage([pointW, pointH]);
-      page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
-    }
-    candidates.push(await out.save());
-  } catch { /* raster unavailable */ }
-  // 3) original (only when grayscale isn't requested — grayscale must change pixels)
+  } catch { /* fall back below */ }
+
+  if (!keepText) {
+    // No selectable text (scan/image-only) — rasterization is safe and usually smallest.
+    try {
+      const doc = await loadDocument(baseBytes.slice());
+      const out = await PDFDocument.create();
+      for (let i = 1; i <= doc.numPages; i++) {
+        const { canvas, pointW, pointH } = await rasterizePage(doc, i, dpi, 0);
+        if (grayscale) toGrayscale(canvas);
+        const jpg = await out.embedJpg(dataUrlToBytes(canvas.toDataURL('image/jpeg', quality)));
+        const page = out.addPage([pointW, pointH]);
+        page.drawImage(jpg, { x: 0, y: 0, width: pointW, height: pointH });
+      }
+      candidates.push(await out.save());
+    } catch { /* raster unavailable */ }
+  }
+
+  // Original re-saved. Excluded when grayscale is requested (it must change pixels),
+  // but if nothing else was produced we still fall back to it rather than fail.
   if (!grayscale) candidates.push(baseBytes);
 
   candidates.sort((a, b) => a.length - b.length);

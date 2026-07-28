@@ -209,15 +209,15 @@ export default function AnnotateLayer({
               case 'arrow':
                 return (
                   <g key={a.id}>
-                    <line x1={px(a.x0)} y1={py(a.y0)} x2={px(a.x1)} y2={py(a.y1)} stroke="transparent" strokeWidth={Math.max(12, strokePx(a.strokeW) + 10)} onPointerDown={(e) => startMove(e, a)} style={{ cursor: 'move' }} />
-                    <line x1={px(a.x0)} y1={py(a.y0)} x2={px(a.x1)} y2={py(a.y1)} stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" markerEnd={a.type === 'arrow' ? `url(#iv-arrow-${a.id})` : undefined} pointerEvents="none" />
+                    <line x1={px(a.x0)} y1={py(a.y0)} x2={px(a.x1)} y2={py(a.y1)} stroke="transparent" strokeWidth={Math.max(12, strokePx(a.strokeW) + 10)} onPointerDown={(e) => startMove(e, a)} style={{ cursor: 'move', pointerEvents: 'stroke' }} />
+                    <line x1={px(a.x0)} y1={py(a.y0)} x2={px(a.x1)} y2={py(a.y1)} stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" markerEnd={a.type === 'arrow' ? `url(#iv-arrow-${a.id})` : undefined} style={{ pointerEvents: 'none' }} />
                   </g>
                 );
               case 'draw':
                 return (
                   <g key={a.id}>
-                    <polyline points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')} fill="none" stroke="transparent" strokeWidth={Math.max(12, strokePx(a.strokeW) + 10)} strokeLinejoin="round" onPointerDown={(e) => startMove(e, a)} style={{ cursor: 'move' }} />
-                    <polyline points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')} fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" className={on ? 'sel-stroke' : ''} />
+                    <polyline points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')} fill="none" stroke="transparent" strokeWidth={Math.max(12, strokePx(a.strokeW) + 10)} strokeLinejoin="round" onPointerDown={(e) => startMove(e, a)} style={{ cursor: 'move', pointerEvents: 'stroke' }} />
+                    <polyline points={a.points.map((p) => `${px(p.x)},${py(p.y)}`).join(' ')} fill="none" stroke={a.color} strokeWidth={strokePx(a.strokeW)} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }} className={on ? 'sel-stroke' : ''} />
                   </g>
                 );
               case 'crop':
@@ -234,7 +234,7 @@ export default function AnnotateLayer({
                 return (
                   <g key={a.id}>
                     <rect x={px(a.x)} y={py(a.y)} width={px(a.w)} height={py(a.h)} fill="var(--accent)" fillOpacity="0.08" stroke="var(--accent)" strokeWidth="1" strokeDasharray="4 3" className={on ? 'sel' : ''} onPointerDown={(e) => startMove(e, a)} />
-                    <text x={px(a.x) + 4} y={py(a.y) + 13} fontSize="11" fill="var(--accent)" pointerEvents="none">{a.fieldType === 'checkbox' ? '☑' : 'T'} {a.name || ''}</text>
+                    <text x={px(a.x) + 4} y={py(a.y) + 13} fontSize="11" fill="var(--accent)" style={{ pointerEvents: 'none' }}>{a.fieldType === 'checkbox' ? '☑' : 'T'} {a.name || ''}</text>
                   </g>
                 );
               default:
